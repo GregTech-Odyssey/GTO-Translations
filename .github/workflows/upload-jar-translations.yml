@@ -1,0 +1,41 @@
+name: Upload mod jar translations
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_lang:
+        description: "Target language to run"
+        required: true
+        type: string # Not a choice to prevent accident
+
+env:
+  PARATRANZ_TOKEN: ${{ secrets.PARATRANZ_TOKEN }}
+
+jobs:
+  upload-jar-translations:
+    name: Upload mod jar translations
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - name: Get project ID
+        id: get-project-id
+        uses: ./.github/actions/get-project-id
+        with:
+          target_lang: ${{ inputs.target_lang }}
+      - name: Ensure Dependencies
+        uses: ./.github/actions/ensure-dependencies
+
+      - name: Download daily
+        uses: ./.github/actions/download-daily
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          directory: .daily-temp
+      - name: Upload mod jar translations
+        run: >-
+          poetry run python main.py action upload-jar-translations
+          --modpack-path='.daily-temp/daily' --interactive=False
+        env:
+          PARATRANZ_PROJECT_ID: ${{ steps.get-project-id.outputs.project_id }}
+          TARGET_LANG: ${{ inputs.target_lang }}

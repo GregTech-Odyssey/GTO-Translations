@@ -1,0 +1,35 @@
+name: Get ParaTranz Project ID
+description: Get ParaTranz Project ID
+
+inputs:
+  target_lang:
+    description: "Target language to run"
+    required: true
+outputs:
+  project_id:
+    description: "Project ID of ParaTranz"
+    value: ${{ steps.load-project-id.outputs.project_id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: master
+        fetch-depth: 2
+    - name: Setup jq
+      shell: bash
+      run: sudo apt-get install jq
+    - name: Load project ID from JSON
+      id: load-project-id
+      shell: bash
+      run: |
+        project_id=$(jq -r --arg lang "$target_lang" '.[$lang]' paratranz-projects.json)
+        if [ "$project_id" == "null" ]; then
+          echo "Unknown language: $target_lang"
+          exit 1
+        fi
+        echo "project_id=${project_id}" >> $GITHUB_OUTPUT
+      env:
+        target_lang: ${{ inputs.target_lang }}
