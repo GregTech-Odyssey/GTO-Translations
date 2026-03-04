@@ -19,6 +19,9 @@ on:
 env:
   PARATRANZ_TOKEN: ${{ secrets.PARATRANZ_TOKEN }}
 
+permissions:
+  contents: read
+
 jobs:
   sync-all-to-paratranz:
     name: ${{ inputs.target_lang }} Sync all to ParaTranz

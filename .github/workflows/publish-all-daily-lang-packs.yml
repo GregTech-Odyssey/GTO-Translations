@@ -4,6 +4,9 @@ on:
   workflow_call:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   zh_CN:
     uses: ./.github/workflows/publish-daily-lang-pack.yml

@@ -11,6 +11,9 @@ on:
 env:
   PARATRANZ_TOKEN: ${{ secrets.PARATRANZ_TOKEN }}
 
+permissions:
+  contents: read
+
 jobs:
   upload-jar-translations:
     name: Upload mod jar translations

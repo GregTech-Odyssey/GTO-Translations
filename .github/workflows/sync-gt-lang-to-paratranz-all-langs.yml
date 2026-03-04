@@ -3,6 +3,9 @@ name: Sync GT lang to ParaTranz for all langs
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   zh_CN:
     uses: ./.github/workflows/sync-gt-lang-to-paratranz.yml

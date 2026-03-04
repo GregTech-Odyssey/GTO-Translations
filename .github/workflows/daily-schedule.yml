@@ -5,6 +5,9 @@ on:
     - cron: "20 1 * * *" # 1:20am UTC every day, before modpack daily builds
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   save-daily-modpack-history:
     uses: ./.github/workflows/save-daily-modpack-history.yml

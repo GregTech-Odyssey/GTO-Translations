@@ -137,7 +137,7 @@ def test__get_content(
     assert zh_cn_filetype_gt_lang.content == ZH_CN_CONTENT
     assert ja_jp_filetype_gt_lang.content == JA_JP_CONTENT
     assert ko_kr_filetype_gt_lang.content == KO_KR_CONTENT
-    assert pt_br_filetype_gt_lang.relpath == PT_BR_RELPATH
+    assert pt_br_filetype_gt_lang.content == PT_BR_CONTENT
 
 
 def test__get_properties(
