@@ -146,6 +146,7 @@ class ResolveReleaseLineTests(unittest.TestCase):
 
         result = sync_module.resolve_release_line(
             client=client,
+            release_product="gto",
             primary_project_id=16320,
             comparison_project_ids=[16525, 18185],
         )
@@ -160,6 +161,7 @@ class ResolveReleaseLineTests(unittest.TestCase):
 
         result = sync_module.resolve_release_line(
             client=client,
+            release_product="gto",
             primary_project_id=16320,
             comparison_project_ids=[16525, 18185],
         )
@@ -176,6 +178,7 @@ class ResolveReleaseLineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             sync_module.resolve_release_line(
                 client=client,
+                release_product="gto",
                 primary_project_id=16320,
                 comparison_project_ids=[16525, 18185],
             )
@@ -244,10 +247,13 @@ class SyncProjectsTests(unittest.TestCase):
             )
             manifest = sync_module.sync_projects(
                 client=client,
+                release_product="gto",
                 project_ids=[16320],
+                configured_locales=["en_us", "ru_ru", "ja_jp"],
                 output_dir=output_dir,
                 manifest_path=manifest_path,
                 min_stage=1,
+                primary_project_id=16320,
             )
 
             core_path = output_dir / "en_us" / "resourcepacks" / "gto-translations-en_us" / "assets" / "gtocore" / "lang" / "en_us.json"

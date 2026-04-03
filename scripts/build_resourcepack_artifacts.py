@@ -5,10 +5,11 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable
 
+from project_config import DEFAULT_CONFIG_PATH, get_configured_locales, load_project_config
 
-DEFAULT_LOCALES = ("en_us", "ru_ru", "ja_jp")
 RESOURCEPACK_NAME_PREFIX = "gto-translations"
 ARTIFACT_METADATA_FILE_NAME = "gto-artifact-metadata.json"
+DEFAULT_COMBINED_LABEL = "all-locales"
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,14 +22,18 @@ def parse_args() -> argparse.Namespace:
         help="Repository root containing locale directories.",
     )
     parser.add_argument(
+        "--config",
+        default=DEFAULT_CONFIG_PATH,
+        help=f"YAML config path. Defaults to {DEFAULT_CONFIG_PATH}.",
+    )
+    parser.add_argument(
         "--output-dir",
         default="dist/artifacts",
         help="Directory where staged artifact folders are written.",
     )
     parser.add_argument(
         "--locales",
-        default=",".join(DEFAULT_LOCALES),
-        help="Comma-separated locale directories to package.",
+        help="Optional comma-separated locale directories to package. Defaults to locales from config.",
     )
     parser.add_argument(
         "--artifact-version",
@@ -135,7 +140,7 @@ def build_combined_pack_mcmeta(pack_format: int) -> dict:
     return {
         "pack": {
             "pack_format": pack_format,
-            "description": "GTO translations resource pack (all-locales)",
+            "description": f"GTO translations resource pack ({DEFAULT_COMBINED_LABEL})",
         }
     }
 
@@ -164,7 +169,7 @@ def stage_combined_artifact(
     if not locales:
         raise ValueError("Cannot build combined artifact without locales.")
 
-    target = output_dir / "all-locales" / "resourcepacks" / build_resourcepack_name("all-locales")
+    target = output_dir / DEFAULT_COMBINED_LABEL / "resourcepacks" / build_resourcepack_name(DEFAULT_COMBINED_LABEL)
     reset_dir(target.parent)
 
     expected_pack_format: int | None = None
@@ -198,9 +203,10 @@ def main() -> int:
     args = parse_args()
 
     try:
+        config = load_project_config(args.config)
         repo_root = Path(args.repo_root).resolve()
         output_dir = Path(args.output_dir).resolve()
-        locales = parse_locales(args.locales)
+        locales = parse_locales(args.locales) if args.locales else get_configured_locales(config)
 
         staged_paths: list[Path] = []
         for locale in locales:

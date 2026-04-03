@@ -37,10 +37,27 @@ jobs:
 
           python scripts/sync_paratranz_to_mc.py
 
+      - name: Resolve configured locale paths
+        id: locale_paths
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path("scripts").resolve()))
+          import project_config
+
+          config = project_config.load_project_config()
+          locales = project_config.get_configured_locales(config)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+            print(f"locale_paths={' '.join(locales)}", file=fh)
+          PY
+
       - name: Detect translation changes
         id: changes
         run: |
-          if git diff --quiet -- .paratranz-sync en_us ru_ru ja_jp; then
+          if git diff --quiet -- .paratranz-sync ${{ steps.locale_paths.outputs.locale_paths }}; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
@@ -71,7 +88,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add en_us ru_ru ja_jp .paratranz-sync
+          git add ${{ steps.locale_paths.outputs.locale_paths }}
+          git add -f .paratranz-sync
           git commit -m "chore: sync Paratranz translations"
 
       - name: Compute artifact version

@@ -125,6 +125,5 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
                 locales=["en_us", "ru_ru"],
             )
 
-
 if __name__ == "__main__":
     unittest.main()

@@ -9,13 +9,19 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from project_config import (
+    DEFAULT_CONFIG_PATH,
+    get_configured_locales,
+    get_configured_project_ids,
+    get_primary_project_id,
+    get_release_product,
+    load_project_config,
+)
 
 DEFAULT_BASE_URL = "https://paratranz.cn/api"
 DEFAULT_OUTPUT_DIR = "."
 DEFAULT_MANIFEST_PATH = ".paratranz-sync/manifest.json"
 DEFAULT_TIMEOUT = 30
-DEFAULT_PROJECT_IDS = (16320, 16525, 18185)
-DEFAULT_PRIMARY_PROJECT_ID = 16320
 DEFAULT_MIN_STAGE = 1
 MAX_RETRIES = 3
 RESOURCEPACK_NAME_PREFIX = "gto-translations"
@@ -80,9 +86,13 @@ def parse_args() -> argparse.Namespace:
         description="Read Paratranz translations and write Minecraft-style lang JSON files into this repository.",
     )
     parser.add_argument(
+        "--config",
+        default=DEFAULT_CONFIG_PATH,
+        help=f"YAML config path. Defaults to {DEFAULT_CONFIG_PATH}.",
+    )
+    parser.add_argument(
         "--project-ids",
-        default=",".join(str(project_id) for project_id in DEFAULT_PROJECT_IDS),
-        help="Comma-separated Paratranz project IDs.",
+        help="Optional comma-separated Paratranz project IDs. Defaults to configured projects.",
     )
     parser.add_argument(
         "--token",
@@ -139,6 +149,7 @@ def parse_project_ids(raw: str) -> list[int]:
 
 def resolve_release_line(
     client: Any,
+    release_product: str,
     primary_project_id: int,
     comparison_project_ids: list[int] | tuple[int, ...] = (),
 ) -> dict[str, Any]:
@@ -173,7 +184,7 @@ def resolve_release_line(
             )
 
     return {
-        "release_line": f"gto-{normalized_version}",
+        "release_line": f"{release_product}-{normalized_version}",
         "primary_project_id": primary_project_id,
         "primary_project_name": primary_project.get("name"),
         "primary_version": normalized_version,
@@ -324,7 +335,11 @@ def load_existing_manifest(path: Path) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
-def collect_previous_generated_paths(repo_root: Path, manifest_payload: dict[str, Any] | None) -> set[Path]:
+def collect_previous_generated_paths(
+    repo_root: Path,
+    manifest_payload: dict[str, Any] | None,
+    configured_locales: list[str],
+) -> set[Path]:
     results: set[Path] = set()
     if not manifest_payload:
         return results
@@ -347,7 +362,13 @@ def collect_previous_generated_paths(repo_root: Path, manifest_payload: dict[str
             continue
         results.add(file_path.resolve(strict=False))
 
-    for locale_dir in ("en_us", "ru_ru", "ja_jp", "en_US", "ru_RU", "ja_JP"):
+    locale_candidates: set[str] = set(configured_locales)
+    locale_candidates.update(locale.upper() for locale in configured_locales)
+    locale_candidates.update(
+        "_".join(part.upper() if index == 1 else part for index, part in enumerate(locale.split("_")))
+        for locale in configured_locales
+    )
+    for locale_dir in sorted(locale_candidates):
         locale_root = repo_root / locale_dir
         if not locale_root.exists():
             continue
@@ -386,20 +407,25 @@ def cleanup_stale_outputs(previous_paths: set[Path], keep_paths: set[Path], prot
 
 def sync_projects(
     client: Any,
+    release_product: str,
     project_ids: list[int],
+    configured_locales: list[str],
     output_dir: Path,
     manifest_path: Path,
     min_stage: int = DEFAULT_MIN_STAGE,
     write_files: bool = True,
-    primary_project_id: int = DEFAULT_PRIMARY_PROJECT_ID,
+    primary_project_id: int | None = None,
 ) -> dict[str, Any]:
     output_dir = output_dir.resolve()
     manifest_path = manifest_path.resolve()
     previous_manifest = load_existing_manifest(manifest_path)
-    previous_generated_paths = collect_previous_generated_paths(output_dir, previous_manifest)
+    previous_generated_paths = collect_previous_generated_paths(output_dir, previous_manifest, configured_locales)
+    if primary_project_id is None:
+        raise ValueError("primary_project_id is required.")
     comparison_project_ids = [project_id for project_id in project_ids if project_id != primary_project_id]
     release_info = resolve_release_line(
         client=client,
+        release_product=release_product,
         primary_project_id=primary_project_id,
         comparison_project_ids=comparison_project_ids,
     )
@@ -495,7 +521,11 @@ def main() -> int:
         return 1
 
     try:
-        project_ids = parse_project_ids(args.project_ids)
+        config = load_project_config(args.config)
+        project_ids = parse_project_ids(args.project_ids) if args.project_ids else get_configured_project_ids(config)
+        configured_locales = get_configured_locales(config)
+        release_product = get_release_product(config)
+        primary_project_id = get_primary_project_id(config)
         output_dir = Path(args.lang_root)
         manifest_path = Path(args.manifest)
         client = ParatranzClient(
@@ -505,11 +535,14 @@ def main() -> int:
         )
         manifest = sync_projects(
             client=client,
+            release_product=release_product,
             project_ids=project_ids,
+            configured_locales=configured_locales,
             output_dir=output_dir,
             manifest_path=manifest_path,
             min_stage=args.min_stage,
             write_files=not args.dry_run,
+            primary_project_id=primary_project_id,
         )
     except Exception as error:
         print(f"Sync failed: {error}", file=sys.stderr)

@@ -1,0 +1,11 @@
+release:
+  product: gto
+  primary_project_id: 16320
+
+projects:
+  - locale: en_us
+    project_id: 16320
+  - locale: ru_ru
+    project_id: 16525
+  - locale: ja_jp
+    project_id: 18185

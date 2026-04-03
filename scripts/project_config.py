@@ -1,0 +1,143 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
+
+DEFAULT_CONFIG_PATH = ".paratranz-sync.yml"
+
+
+def parse_scalar(raw: str) -> Any:
+    value = raw.strip()
+    if not value:
+        return ""
+    if value.isdigit():
+        return int(value)
+    return value
+
+
+def parse_simple_yaml(text: str) -> dict[str, Any]:
+    payload: dict[str, Any] = {}
+    current_section: str | None = None
+    current_item: dict[str, Any] | None = None
+
+    for lineno, raw_line in enumerate(text.splitlines(), start=1):
+        if not raw_line.strip() or raw_line.lstrip().startswith("#"):
+            continue
+
+        indent = len(raw_line) - len(raw_line.lstrip(" "))
+        stripped = raw_line.strip()
+
+        if indent == 0:
+            if not stripped.endswith(":"):
+                raise ValueError(f"Invalid top-level YAML line {lineno}: {raw_line}")
+            current_section = stripped[:-1]
+            current_item = None
+            if current_section == "projects":
+                payload[current_section] = []
+            else:
+                payload[current_section] = {}
+            continue
+
+        if current_section is None:
+            raise ValueError(f"Unexpected indentation before a section at line {lineno}.")
+
+        if current_section == "release":
+            if indent != 2 or ":" not in stripped:
+                raise ValueError(f"Invalid release entry at line {lineno}: {raw_line}")
+            key, value = stripped.split(":", 1)
+            payload["release"][key.strip()] = parse_scalar(value)
+            continue
+
+        if current_section == "projects":
+            if indent == 2 and stripped.startswith("- "):
+                item_content = stripped[2:].strip()
+                current_item = {}
+                payload["projects"].append(current_item)
+                if item_content:
+                    if ":" not in item_content:
+                        raise ValueError(f"Invalid project entry at line {lineno}: {raw_line}")
+                    key, value = item_content.split(":", 1)
+                    current_item[key.strip()] = parse_scalar(value)
+                continue
+
+            if indent == 4 and current_item is not None and ":" in stripped:
+                key, value = stripped.split(":", 1)
+                current_item[key.strip()] = parse_scalar(value)
+                continue
+
+            raise ValueError(f"Invalid projects entry at line {lineno}: {raw_line}")
+
+        raise ValueError(f"Unsupported section '{current_section}' at line {lineno}.")
+
+    return payload
+
+
+def load_project_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
+    config_path = Path(path)
+    payload = parse_simple_yaml(config_path.read_text(encoding="utf-8"))
+
+    release = payload.get("release")
+    projects = payload.get("projects")
+    if not isinstance(release, dict):
+        raise ValueError("Project config is missing a release section.")
+    if not isinstance(projects, list) or not projects:
+        raise ValueError("Project config must define at least one project.")
+
+    product = release.get("product")
+    primary_project_id = release.get("primary_project_id")
+    if not isinstance(product, str) or not product.strip():
+        raise ValueError("release.product must be a non-empty string.")
+    if not isinstance(primary_project_id, int):
+        raise ValueError("release.primary_project_id must be an integer.")
+
+    normalized_projects: list[dict[str, Any]] = []
+    seen_locales: set[str] = set()
+    for index, item in enumerate(projects):
+        if not isinstance(item, dict):
+            raise ValueError(f"projects[{index}] must be an object.")
+        locale = item.get("locale")
+        project_id = item.get("project_id")
+        if not isinstance(locale, str) or not locale.strip():
+            raise ValueError(f"projects[{index}].locale must be a non-empty string.")
+        if not isinstance(project_id, int):
+            raise ValueError(f"projects[{index}].project_id must be an integer.")
+        normalized_locale = locale.strip()
+        if normalized_locale in seen_locales:
+            raise ValueError(f"Duplicate locale in config: {normalized_locale}")
+        seen_locales.add(normalized_locale)
+        normalized_projects.append(
+            {
+                "locale": normalized_locale,
+                "project_id": project_id,
+                "artifact_label": item.get("artifact_label", normalized_locale),
+            }
+        )
+
+    return {
+        "release": {
+            "product": product.strip(),
+            "primary_project_id": primary_project_id,
+        },
+        "projects": normalized_projects,
+    }
+
+
+def get_release_product(config: dict[str, Any]) -> str:
+    return str(config["release"]["product"])
+
+
+def get_primary_project_id(config: dict[str, Any]) -> int:
+    return int(config["release"]["primary_project_id"])
+
+
+def get_configured_locales(config: dict[str, Any]) -> list[str]:
+    return [str(item["locale"]) for item in config["projects"]]
+
+
+def get_configured_project_ids(config: dict[str, Any]) -> list[int]:
+    return [int(item["project_id"]) for item in config["projects"]]
+
+
+def get_project_entries(config: dict[str, Any]) -> list[dict[str, Any]]:
+    return [dict(item) for item in config["projects"]]
