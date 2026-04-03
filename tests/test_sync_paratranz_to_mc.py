@@ -21,6 +21,32 @@ class FakeClient:
                 "source": "zh-cn",
                 "dest": "en",
                 "reviewMode": 1,
+                "extra": {
+                    "version": "0.5.4",
+                    "compatible": "GregTech.Odyssey-0.5.4-beta",
+                },
+            },
+            16525: {
+                "id": 16525,
+                "name": "GregTech-Odyssey(ru)",
+                "source": "zh-cn",
+                "dest": "ru",
+                "reviewMode": 1,
+                "extra": {
+                    "version": "0.5.4",
+                    "compatible": "GregTech.Odyssey-0.5.4-beta",
+                },
+            },
+            18185: {
+                "id": 18185,
+                "name": "GregTech-Odyssey(ja)",
+                "source": "zh-cn",
+                "dest": "ja",
+                "reviewMode": 1,
+                "extra": {
+                    "version": "0.5.4",
+                    "compatible": "GregTech.Odyssey-0.5.4-beta",
+                },
             }
         }
         self.files = {
@@ -112,6 +138,47 @@ class NormalizeTranslationPayloadTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             sync_module.normalize_translation_payload(payload, min_stage=1)
+
+
+class ResolveReleaseLineTests(unittest.TestCase):
+    def test_uses_primary_project_version_for_release_line(self) -> None:
+        client = FakeClient()
+
+        result = sync_module.resolve_release_line(
+            client=client,
+            primary_project_id=16320,
+            comparison_project_ids=[16525, 18185],
+        )
+
+        self.assertEqual(result["release_line"], "gto-0.5.4")
+        self.assertEqual(result["primary_version"], "0.5.4")
+        self.assertEqual(result["warnings"], [])
+
+    def test_warns_when_comparison_project_version_differs(self) -> None:
+        client = FakeClient()
+        client.projects[18185]["extra"]["version"] = "0.5.5"
+
+        result = sync_module.resolve_release_line(
+            client=client,
+            primary_project_id=16320,
+            comparison_project_ids=[16525, 18185],
+        )
+
+        self.assertEqual(result["release_line"], "gto-0.5.4")
+        self.assertEqual(len(result["warnings"]), 1)
+        self.assertIn("18185", result["warnings"][0])
+        self.assertIn("0.5.5", result["warnings"][0])
+
+    def test_rejects_missing_primary_project_version(self) -> None:
+        client = FakeClient()
+        del client.projects[16320]["extra"]["version"]
+
+        with self.assertRaises(ValueError):
+            sync_module.resolve_release_line(
+                client=client,
+                primary_project_id=16320,
+                comparison_project_ids=[16525, 18185],
+            )
 
 
 class PathSafetyTests(unittest.TestCase):
@@ -212,6 +279,9 @@ class SyncProjectsTests(unittest.TestCase):
 
             written_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual(manifest["projects"][0]["project"]["id"], 16320)
+            self.assertEqual(manifest["release_line"], "gto-0.5.4")
+            self.assertEqual(written_manifest["release_line"], "gto-0.5.4")
+            self.assertEqual(written_manifest["release_line_warnings"], [])
             self.assertEqual(written_manifest["files"][0]["remote_name"], "GTOCore/en_us.json")
             self.assertEqual(written_manifest["files"][0]["stats"]["emitted_entries"], 2)
             self.assertEqual(

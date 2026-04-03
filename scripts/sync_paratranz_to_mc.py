@@ -15,6 +15,7 @@ DEFAULT_OUTPUT_DIR = "."
 DEFAULT_MANIFEST_PATH = ".paratranz-sync/manifest.json"
 DEFAULT_TIMEOUT = 30
 DEFAULT_PROJECT_IDS = (16320, 16525, 18185)
+DEFAULT_PRIMARY_PROJECT_ID = 16320
 DEFAULT_MIN_STAGE = 1
 MAX_RETRIES = 3
 RESOURCEPACK_NAME_PREFIX = "gto-translations"
@@ -134,6 +135,50 @@ def parse_project_ids(raw: str) -> list[int]:
     if not ids:
         raise ValueError("At least one project ID is required.")
     return ids
+
+
+def resolve_release_line(
+    client: Any,
+    primary_project_id: int,
+    comparison_project_ids: list[int] | tuple[int, ...] = (),
+) -> dict[str, Any]:
+    primary_project = client.get_project(primary_project_id)
+    primary_extra = primary_project.get("extra")
+    if not isinstance(primary_extra, dict):
+        raise ValueError(f"Project {primary_project_id} is missing extra metadata.")
+
+    primary_version = primary_extra.get("version")
+    if not isinstance(primary_version, str) or not primary_version.strip():
+        raise ValueError(f"Project {primary_project_id} is missing extra.version.")
+
+    normalized_version = primary_version.strip()
+    warnings: list[str] = []
+
+    for project_id in comparison_project_ids:
+        project = client.get_project(project_id)
+        extra = project.get("extra")
+        comparison_version = extra.get("version") if isinstance(extra, dict) else None
+        if not isinstance(comparison_version, str) or not comparison_version.strip():
+            warnings.append(
+                f"Project {project_id} ({project.get('name')}) is missing extra.version; "
+                f"expected {normalized_version} from primary project {primary_project_id}."
+            )
+            continue
+
+        comparison_version = comparison_version.strip()
+        if comparison_version != normalized_version:
+            warnings.append(
+                f"Project {project_id} ({project.get('name')}) reports extra.version={comparison_version}, "
+                f"which differs from primary project {primary_project_id} extra.version={normalized_version}."
+            )
+
+    return {
+        "release_line": f"gto-{normalized_version}",
+        "primary_project_id": primary_project_id,
+        "primary_project_name": primary_project.get("name"),
+        "primary_version": normalized_version,
+        "warnings": warnings,
+    }
 
 
 def build_output_path(output_dir: Path, remote_name: str) -> Path:
@@ -346,15 +391,26 @@ def sync_projects(
     manifest_path: Path,
     min_stage: int = DEFAULT_MIN_STAGE,
     write_files: bool = True,
+    primary_project_id: int = DEFAULT_PRIMARY_PROJECT_ID,
 ) -> dict[str, Any]:
     output_dir = output_dir.resolve()
     manifest_path = manifest_path.resolve()
     previous_manifest = load_existing_manifest(manifest_path)
     previous_generated_paths = collect_previous_generated_paths(output_dir, previous_manifest)
+    comparison_project_ids = [project_id for project_id in project_ids if project_id != primary_project_id]
+    release_info = resolve_release_line(
+        client=client,
+        primary_project_id=primary_project_id,
+        comparison_project_ids=comparison_project_ids,
+    )
 
     manifest: dict[str, Any] = {
         "synced_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "project_ids": project_ids,
+        "release_line": release_info["release_line"],
+        "release_line_primary_project_id": primary_project_id,
+        "release_line_primary_version": release_info["primary_version"],
+        "release_line_warnings": release_info["warnings"],
         "projects": [],
         "files": [],
         "generated_paths": [],
@@ -374,6 +430,8 @@ def sync_projects(
                 "source": project.get("source"),
                 "dest": project.get("dest"),
                 "reviewMode": project.get("reviewMode"),
+                "version": project.get("extra", {}).get("version") if isinstance(project.get("extra"), dict) else None,
+                "compatible": project.get("extra", {}).get("compatible") if isinstance(project.get("extra"), dict) else None,
             },
             "files": [],
         }

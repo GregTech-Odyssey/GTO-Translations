@@ -51,21 +51,45 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
         shutil.rmtree(self.temp_root, ignore_errors=True)
 
     def test_stage_single_locale_artifact_preserves_resourcepack_layout(self) -> None:
+        metadata = artifacts_module.build_artifact_metadata(
+            artifact_version="gto-0.5.4-dev-26.04.04.12-abcd1234",
+            artifact_kind="locale",
+            locales=["en_us"],
+            release_line="gto-0.5.4",
+            source_revision="abcd1234",
+            built_at="2026-04-04T00:00:00Z",
+        )
         artifact_root = artifacts_module.stage_single_locale_artifact(
             repo_root=self.temp_root,
             output_dir=self.output_dir,
             locale="en_us",
+            artifact_metadata=metadata,
         )
 
         self.assertEqual(artifact_root, self.output_dir / "en_us" / "resourcepacks")
         self.assertTrue((artifact_root / "gto-translations-en_us" / "pack.mcmeta").exists())
         self.assertTrue((artifact_root / "gto-translations-en_us" / "assets" / "gtocore" / "lang" / "en_us.json").exists())
+        self.assertEqual(
+            json.loads(
+                (artifact_root / "gto-translations-en_us" / artifacts_module.ARTIFACT_METADATA_FILE_NAME).read_text(encoding="utf-8")
+            )["artifact_version"],
+            "gto-0.5.4-dev-26.04.04.12-abcd1234",
+        )
 
     def test_stage_combined_artifact_merges_all_locale_lang_files(self) -> None:
+        metadata = artifacts_module.build_artifact_metadata(
+            artifact_version="gto-0.5.4-dev-26.04.04.12-abcd1234",
+            artifact_kind="combined",
+            locales=["en_us", "ru_ru"],
+            release_line="gto-0.5.4",
+            source_revision="abcd1234",
+            built_at="2026-04-04T00:00:00Z",
+        )
         artifact_root = artifacts_module.stage_combined_artifact(
             repo_root=self.temp_root,
             output_dir=self.output_dir,
             locales=["en_us", "ru_ru"],
+            artifact_metadata=metadata,
         )
 
         combined_pack = artifact_root / "gto-translations-all-locales"
@@ -78,6 +102,10 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
         self.assertTrue((combined_pack / "assets" / "gtocore" / "lang" / "ru_ru.json").exists())
         self.assertTrue((combined_pack / "assets" / "gto" / "lang" / "en_us.json").exists())
         self.assertTrue((combined_pack / "assets" / "gto" / "lang" / "ru_ru.json").exists())
+        self.assertEqual(
+            json.loads((combined_pack / artifacts_module.ARTIFACT_METADATA_FILE_NAME).read_text(encoding="utf-8"))["artifact_kind"],
+            "combined",
+        )
 
     def test_stage_combined_artifact_rejects_mismatched_pack_metadata(self) -> None:
         write_json(

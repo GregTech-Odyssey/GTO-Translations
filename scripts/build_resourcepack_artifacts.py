@@ -3,11 +3,12 @@ import json
 import shutil
 import sys
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 
 DEFAULT_LOCALES = ("en_us", "ru_ru", "ja_jp")
 RESOURCEPACK_NAME_PREFIX = "gto-translations"
+ARTIFACT_METADATA_FILE_NAME = "gto-artifact-metadata.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,6 +29,22 @@ def parse_args() -> argparse.Namespace:
         "--locales",
         default=",".join(DEFAULT_LOCALES),
         help="Comma-separated locale directories to package.",
+    )
+    parser.add_argument(
+        "--artifact-version",
+        help="Optional immutable version identifier written into each staged artifact.",
+    )
+    parser.add_argument(
+        "--release-line",
+        help="Optional compatibility line such as gto-0.5.4.",
+    )
+    parser.add_argument(
+        "--source-revision",
+        help="Optional source revision, usually the Git commit SHA.",
+    )
+    parser.add_argument(
+        "--built-at",
+        help="Optional build timestamp to embed in artifact metadata.",
     )
     return parser.parse_args()
 
@@ -75,6 +92,45 @@ def read_pack_mcmeta(resourcepack_root: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def write_json_file(path: Path, payload: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def build_artifact_metadata(
+    *,
+    artifact_version: str | None,
+    artifact_kind: str,
+    locales: list[str],
+    release_line: str | None = None,
+    source_revision: str | None = None,
+    built_at: str | None = None,
+) -> dict[str, Any] | None:
+    if not any((artifact_version, release_line, source_revision, built_at)):
+        return None
+
+    metadata: dict[str, Any] = {
+        "schema_version": 1,
+        "artifact_kind": artifact_kind,
+        "locales": locales,
+    }
+    if artifact_version:
+        metadata["artifact_version"] = artifact_version
+    if release_line:
+        metadata["release_line"] = release_line
+    if source_revision:
+        metadata["source_revision"] = source_revision
+    if built_at:
+        metadata["built_at"] = built_at
+    return metadata
+
+
+def write_artifact_metadata(resourcepack_root: Path, metadata: dict[str, Any] | None) -> None:
+    if metadata is None:
+        return
+    write_json_file(resourcepack_root / ARTIFACT_METADATA_FILE_NAME, metadata)
+
+
 def build_combined_pack_mcmeta(pack_format: int) -> dict:
     return {
         "pack": {
@@ -84,15 +140,26 @@ def build_combined_pack_mcmeta(pack_format: int) -> dict:
     }
 
 
-def stage_single_locale_artifact(repo_root: Path, output_dir: Path, locale: str) -> Path:
+def stage_single_locale_artifact(
+    repo_root: Path,
+    output_dir: Path,
+    locale: str,
+    artifact_metadata: dict[str, Any] | None = None,
+) -> Path:
     source = ensure_resourcepack_exists(repo_root, locale)
     target = output_dir / locale / "resourcepacks" / build_resourcepack_name(locale)
     reset_dir(target.parent)
     shutil.copytree(source, target, dirs_exist_ok=True)
+    write_artifact_metadata(target, artifact_metadata)
     return target.parent
 
 
-def stage_combined_artifact(repo_root: Path, output_dir: Path, locales: Iterable[str]) -> Path:
+def stage_combined_artifact(
+    repo_root: Path,
+    output_dir: Path,
+    locales: Iterable[str],
+    artifact_metadata: dict[str, Any] | None = None,
+) -> Path:
     locales = list(locales)
     if not locales:
         raise ValueError("Cannot build combined artifact without locales.")
@@ -122,6 +189,7 @@ def stage_combined_artifact(repo_root: Path, output_dir: Path, locales: Iterable
         json.dumps(build_combined_pack_mcmeta(expected_pack_format), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    write_artifact_metadata(target, artifact_metadata)
 
     return target.parent
 
@@ -136,9 +204,30 @@ def main() -> int:
 
         staged_paths: list[Path] = []
         for locale in locales:
-            staged_paths.append(stage_single_locale_artifact(repo_root, output_dir, locale))
+            artifact_metadata = build_artifact_metadata(
+                artifact_version=args.artifact_version,
+                artifact_kind="locale",
+                locales=[locale],
+                release_line=args.release_line,
+                source_revision=args.source_revision,
+                built_at=args.built_at,
+            )
+            staged_paths.append(stage_single_locale_artifact(
+                repo_root,
+                output_dir,
+                locale,
+                artifact_metadata=artifact_metadata,
+            ))
 
-        staged_paths.append(stage_combined_artifact(repo_root, output_dir, locales))
+        combined_metadata = build_artifact_metadata(
+            artifact_version=args.artifact_version,
+            artifact_kind="combined",
+            locales=locales,
+            release_line=args.release_line,
+            source_revision=args.source_revision,
+            built_at=args.built_at,
+        )
+        staged_paths.append(stage_combined_artifact(repo_root, output_dir, locales, artifact_metadata=combined_metadata))
     except Exception as error:
         print(f"Artifact build failed: {error}", file=sys.stderr)
         return 1
