@@ -11,8 +11,15 @@ def parse_scalar(raw: str) -> Any:
     value = raw.strip()
     if not value:
         return ""
-    if value.isdigit():
+    if value.startswith("[") and value.endswith("]"):
+        inner = value[1:-1].strip()
+        if not inner:
+            return []
+        return [parse_scalar(part) for part in inner.split(",")]
+    try:
         return int(value)
+    except ValueError:
+        pass
     return value
 
 
@@ -101,21 +108,33 @@ def load_project_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any
             raise ValueError(f"projects[{index}] must be an object.")
         locale = item.get("locale")
         project_id = item.get("project_id")
+        min_stage = item.get("min_stage", 1)
+        allowed_stages = item.get("allowed_stages")
         if not isinstance(locale, str) or not locale.strip():
             raise ValueError(f"projects[{index}].locale must be a non-empty string.")
         if not isinstance(project_id, int):
             raise ValueError(f"projects[{index}].project_id must be an integer.")
+        if allowed_stages is not None:
+            if not isinstance(allowed_stages, list) or not allowed_stages:
+                raise ValueError(f"projects[{index}].allowed_stages must be a non-empty list of integers.")
+            if not all(isinstance(stage, int) for stage in allowed_stages):
+                raise ValueError(f"projects[{index}].allowed_stages must contain only integers.")
+        elif not isinstance(min_stage, int):
+            raise ValueError(f"projects[{index}].min_stage must be an integer.")
         normalized_locale = locale.strip()
         if normalized_locale in seen_locales:
             raise ValueError(f"Duplicate locale in config: {normalized_locale}")
         seen_locales.add(normalized_locale)
-        normalized_projects.append(
-            {
-                "locale": normalized_locale,
-                "project_id": project_id,
-                "artifact_label": item.get("artifact_label", normalized_locale),
-            }
-        )
+        normalized_item = {
+            "locale": normalized_locale,
+            "project_id": project_id,
+            "artifact_label": item.get("artifact_label", normalized_locale),
+        }
+        if allowed_stages is not None:
+            normalized_item["allowed_stages"] = [int(stage) for stage in allowed_stages]
+        else:
+            normalized_item["min_stage"] = min_stage
+        normalized_projects.append(normalized_item)
 
     return {
         "release": {
@@ -178,6 +197,12 @@ def dump_project_config(config: dict[str, Any]) -> str:
     for item in config["projects"]:
         lines.append(f"  - locale: {item['locale']}")
         lines.append(f"    project_id: {item['project_id']}")
+        allowed_stages = item.get("allowed_stages")
+        if isinstance(allowed_stages, list) and allowed_stages:
+            rendered = ", ".join(str(stage) for stage in allowed_stages)
+            lines.append(f"    allowed_stages: [{rendered}]")
+        else:
+            lines.append(f"    min_stage: {item.get('min_stage', 1)}")
         artifact_label = item.get("artifact_label")
         if isinstance(artifact_label, str) and artifact_label and artifact_label != item["locale"]:
             lines.append(f"    artifact_label: {artifact_label}")

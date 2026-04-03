@@ -7,7 +7,7 @@ Project configuration is stored in `.paratranz-sync.yml`.
 - `release.product`: release prefix, currently `gto`
 - `release.primary_project_id`: Paratranz project used as the version source
 - `release.current_version`: last synced upstream version, updated automatically by the sync workflow
-- `projects`: supported locales and their Paratranz project IDs
+- `projects`: supported locales, their Paratranz project IDs, and per-locale stage export filters such as `allowed_stages`
 
 ## Sync
 

@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+env:
+  TZ: Asia/Shanghai
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -31,7 +34,7 @@ jobs:
         run: |
           tag_name="${GITHUB_REF_NAME}"
           release_line="${tag_name%-r*}"
-          built_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          built_at="$(date +"%Y-%m-%dT%H:%M:%S%:z")"
           echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
           echo "release_line=${release_line}" >> "$GITHUB_OUTPUT"
           echo "source_revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

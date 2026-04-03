@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -13,9 +13,9 @@ from project_config import (
     DEFAULT_CONFIG_PATH,
     build_release_line,
     get_configured_locales,
-    get_configured_project_ids,
     get_current_version,
     get_primary_project_id,
+    get_project_entries,
     get_release_product,
     load_project_config,
     set_current_version,
@@ -26,9 +26,9 @@ DEFAULT_BASE_URL = "https://paratranz.cn/api"
 DEFAULT_OUTPUT_DIR = "."
 DEFAULT_MANIFEST_PATH = ".paratranz-sync/manifest.json"
 DEFAULT_TIMEOUT = 30
-DEFAULT_MIN_STAGE = 1
 MAX_RETRIES = 3
 RESOURCEPACK_NAME_PREFIX = "gto-translations"
+DEFAULT_TIMEZONE = timezone(timedelta(hours=8), name="UTC+08:00")
 MODULE_OUTPUT_PATHS = {
     "gtocore": ("assets", "gtocore", "lang"),
     "gtodyssey": ("assets", "gto", "lang"),
@@ -128,8 +128,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--min-stage",
         type=int,
-        default=DEFAULT_MIN_STAGE,
-        help=f"Only include entries whose stage is at least this value. Defaults to {DEFAULT_MIN_STAGE}.",
+        default=None,
+        help="Optional global stage override. When omitted, per-project min_stage from .paratranz-sync.yml is used.",
     )
     parser.add_argument(
         "--dry-run",
@@ -257,12 +257,16 @@ def build_pack_mcmeta(label: str) -> dict[str, Any]:
     }
 
 
-def normalize_translation_payload(payload: Any, min_stage: int = DEFAULT_MIN_STAGE) -> tuple[dict[str, str], dict[str, int]]:
+def normalize_translation_payload(
+    payload: Any,
+    min_stage: int = 1,
+    allowed_stages: set[int] | None = None,
+) -> tuple[dict[str, str], dict[str, int]]:
     stats = {
         "total_entries": 0,
         "emitted_entries": 0,
         "skipped_empty_translation": 0,
-        "skipped_below_stage": 0,
+        "skipped_filtered_stage": 0,
         "duplicate_keys": 0,
     }
 
@@ -287,6 +291,7 @@ def normalize_translation_payload(payload: Any, min_stage: int = DEFAULT_MIN_STA
 
         key = item.get("key")
         translation = item.get("translation")
+        original = item.get("original")
         stage = item.get("stage")
 
         if not isinstance(key, str) or not key:
@@ -295,6 +300,10 @@ def normalize_translation_payload(payload: Any, min_stage: int = DEFAULT_MIN_STA
             translation = ""
         if not isinstance(translation, str):
             raise ValueError(f"Entry #{index} has a non-string translation.")
+        if original is None:
+            original = ""
+        if not isinstance(original, str):
+            raise ValueError(f"Entry #{index} has a non-string original.")
 
         parsed_stage = 0
         if stage is not None:
@@ -303,21 +312,26 @@ def normalize_translation_payload(payload: Any, min_stage: int = DEFAULT_MIN_STA
             except (TypeError, ValueError) as error:
                 raise ValueError(f"Entry #{index} has an invalid stage.") from error
 
-        if parsed_stage < min_stage:
-            stats["skipped_below_stage"] += 1
+        if allowed_stages is not None:
+            if parsed_stage not in allowed_stages:
+                stats["skipped_filtered_stage"] += 1
+                continue
+        elif parsed_stage < min_stage:
+            stats["skipped_filtered_stage"] += 1
             continue
-        if not translation.strip():
+        emitted_text = original if parsed_stage == -1 else translation
+        if not emitted_text.strip():
             stats["skipped_empty_translation"] += 1
             continue
 
         existing = mapping.get(key)
         if existing is not None:
             stats["duplicate_keys"] += 1
-            if existing != translation:
+            if existing != emitted_text:
                 raise ValueError(f"Conflicting translations for duplicate key: {key}")
             continue
 
-        mapping[key] = translation
+        mapping[key] = emitted_text
 
     stats["emitted_entries"] = len(mapping)
     return dict(sorted(mapping.items())), stats
@@ -412,18 +426,20 @@ def cleanup_stale_outputs(previous_paths: set[Path], keep_paths: set[Path], prot
 def sync_projects(
     client: Any,
     release_product: str,
-    project_ids: list[int],
-    configured_locales: list[str],
+    project_entries: list[dict[str, Any]],
     config_path: Path,
     config: dict[str, Any],
     output_dir: Path,
     manifest_path: Path,
-    min_stage: int = DEFAULT_MIN_STAGE,
+    min_stage_override: int | None = None,
     write_files: bool = True,
     primary_project_id: int | None = None,
 ) -> dict[str, Any]:
     output_dir = output_dir.resolve()
     manifest_path = manifest_path.resolve()
+    project_ids = [int(entry["project_id"]) for entry in project_entries]
+    configured_locales = [str(entry["locale"]) for entry in project_entries]
+    project_entry_by_id = {int(entry["project_id"]): entry for entry in project_entries}
     previous_manifest = load_existing_manifest(manifest_path)
     previous_generated_paths = collect_previous_generated_paths(output_dir, previous_manifest, configured_locales)
     if primary_project_id is None:
@@ -437,7 +453,7 @@ def sync_projects(
     )
 
     manifest: dict[str, Any] = {
-        "synced_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "synced_at": datetime.now(UTC).astimezone(DEFAULT_TIMEZONE).isoformat(timespec="seconds"),
         "project_ids": project_ids,
         "release_line": release_info["release_line"],
         "release_line_primary_project_id": primary_project_id,
@@ -475,7 +491,20 @@ def sync_projects(
                 raise ValueError(f"Unexpected file metadata in project {project_id}")
 
             payload = client.get_file_translation(project_id, file_id)
-            mapping, stats = normalize_translation_payload(payload, min_stage=min_stage)
+            project_entry_config = project_entry_by_id[project_id]
+            effective_min_stage = min_stage_override
+            effective_allowed_stages = None
+            if effective_min_stage is None:
+                configured_allowed_stages = project_entry_config.get("allowed_stages")
+                if isinstance(configured_allowed_stages, list) and configured_allowed_stages:
+                    effective_allowed_stages = {int(stage) for stage in configured_allowed_stages}
+                else:
+                    effective_min_stage = int(project_entry_config.get("min_stage", 1))
+            mapping, stats = normalize_translation_payload(
+                payload,
+                min_stage=effective_min_stage if effective_min_stage is not None else 1,
+                allowed_stages=effective_allowed_stages,
+            )
             output_path = build_output_path(output_dir, remote_name)
             keep_paths.add(output_path)
             pack_locales.add(str(output_path.relative_to(output_dir).parts[0]))
@@ -493,6 +522,10 @@ def sync_projects(
                 "reviewed": file_info.get("reviewed"),
                 "stats": stats,
             }
+            if effective_allowed_stages is not None:
+                file_entry["allowed_stages"] = sorted(effective_allowed_stages)
+            else:
+                file_entry["min_stage"] = effective_min_stage
             manifest["files"].append(file_entry)
             project_entry["files"].append(file_entry)
             manifest["generated_paths"].append(str(output_path.relative_to(output_dir).as_posix()))
@@ -532,8 +565,17 @@ def main() -> int:
 
     try:
         config = load_project_config(args.config)
-        project_ids = parse_project_ids(args.project_ids) if args.project_ids else get_configured_project_ids(config)
-        configured_locales = get_configured_locales(config)
+        all_project_entries = get_project_entries(config)
+        if args.project_ids:
+            requested_project_ids = parse_project_ids(args.project_ids)
+            requested_project_ids_set = set(requested_project_ids)
+            project_entries = [entry for entry in all_project_entries if int(entry["project_id"]) in requested_project_ids_set]
+            if len(project_entries) != len(requested_project_ids_set):
+                configured_project_ids = {int(entry["project_id"]) for entry in all_project_entries}
+                missing_ids = sorted(requested_project_ids_set - configured_project_ids)
+                raise ValueError(f"Unconfigured project IDs requested: {missing_ids}")
+        else:
+            project_entries = all_project_entries
         release_product = get_release_product(config)
         primary_project_id = get_primary_project_id(config)
         config_path = Path(args.config)
@@ -547,13 +589,12 @@ def main() -> int:
         manifest = sync_projects(
             client=client,
             release_product=release_product,
-            project_ids=project_ids,
-            configured_locales=configured_locales,
+            project_entries=project_entries,
             config_path=config_path,
             config=config,
             output_dir=output_dir,
             manifest_path=manifest_path,
-            min_stage=args.min_stage,
+            min_stage_override=args.min_stage,
             write_files=not args.dry_run,
             primary_project_id=primary_project_id,
         )

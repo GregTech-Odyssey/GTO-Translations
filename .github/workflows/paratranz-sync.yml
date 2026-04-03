@@ -3,10 +3,13 @@ name: Sync Paratranz Translations
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 4,16 * * *"
 
 permissions:
   contents: write
+
+env:
+  TZ: Asia/Shanghai
 
 jobs:
   sync:
@@ -114,8 +117,8 @@ jobs:
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           short_sha="$(git rev-parse --short=8 HEAD)"
-          build_date="$(date -u +"%y.%m.%d")"
-          built_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          build_date="$(date +"%y.%m.%d")"
+          built_at="$(date +"%Y-%m-%dT%H:%M:%S%:z")"
           artifact_version="${{ steps.release_meta.outputs.release_line }}-dev-${build_date}.${GITHUB_RUN_NUMBER}-${short_sha}"
           echo "artifact_version=${artifact_version}" >> "$GITHUB_OUTPUT"
           echo "source_revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

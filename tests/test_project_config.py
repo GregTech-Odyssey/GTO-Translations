@@ -31,8 +31,10 @@ class ProjectConfigTests(unittest.TestCase):
                     "projects:",
                     "  - locale: en_us",
                     "    project_id: 16320",
+                    "    allowed_stages: [-1, 5, 9]",
                     "  - locale: ru_ru",
                     "    project_id: 16525",
+                    "    allowed_stages: [-1, 5, 9]",
                 ]
             )
             + "\n",
@@ -46,6 +48,7 @@ class ProjectConfigTests(unittest.TestCase):
         self.assertEqual(config_module.get_current_version(config), "0.5.4")
         self.assertEqual(config_module.get_configured_locales(config), ["en_us", "ru_ru"])
         self.assertEqual(config_module.get_configured_project_ids(config), [16320, 16525])
+        self.assertEqual(config_module.get_project_entries(config)[0]["allowed_stages"], [-1, 5, 9])
 
     def test_rejects_missing_projects(self) -> None:
         self.config_path.write_text(
@@ -72,8 +75,8 @@ class ProjectConfigTests(unittest.TestCase):
                 "current_version": None,
             },
             "projects": [
-                {"locale": "en_us", "project_id": 16320, "artifact_label": "en_us"},
-                {"locale": "ru_ru", "project_id": 16525, "artifact_label": "ru_ru"},
+                {"locale": "en_us", "project_id": 16320, "allowed_stages": [-1, 5, 9], "artifact_label": "en_us"},
+                {"locale": "ru_ru", "project_id": 16525, "allowed_stages": [-1, 5, 9], "artifact_label": "ru_ru"},
             ],
         }
 
@@ -83,3 +86,4 @@ class ProjectConfigTests(unittest.TestCase):
 
         self.assertEqual(config_module.get_current_version(reloaded), "0.5.5")
         self.assertEqual(config_module.build_release_line("gto", "0.5.5"), "gto-0.5.5")
+        self.assertEqual(config_module.get_project_entries(reloaded)[0]["allowed_stages"], [-1, 5, 9])

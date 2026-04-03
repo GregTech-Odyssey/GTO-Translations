@@ -71,15 +71,34 @@ class FakeClient:
                     "format": "jsonkv",
                 },
             ]
+            ,
+            18185: [
+                {
+                    "id": 20,
+                    "name": "GTOCore/ja_jp.json",
+                    "total": 2,
+                    "translated": 1,
+                    "reviewed": 0,
+                    "modifiedAt": "2026-04-02T06:00:00.000Z",
+                    "format": "jsonkv",
+                },
+            ],
         }
         self.translations = {
             (16320, 10): [
                 {"key": "key.a", "translation": "Alpha", "stage": 1},
                 {"key": "key.b", "translation": "", "stage": 0},
+                {"key": "key.hidden", "original": "Hidden Original", "translation": "", "stage": -1},
                 {"key": "key.c", "translation": "Gamma", "stage": 5},
             ],
             (16320, 11): [
                 {"key": "key.d", "translation": "Delta", "stage": 1},
+            ],
+            (18185, 20): [
+                {"key": "key.jp.hidden", "original": "JP Hidden Original", "translation": "", "stage": -1},
+                {"key": "key.jp.reviewed", "translation": "Reviewed", "stage": 5},
+                {"key": "key.jp.translated", "translation": "Translated", "stage": 1},
+                {"key": "key.jp.questioned", "translation": "Questioned", "stage": 2},
             ],
         }
 
@@ -117,7 +136,48 @@ class NormalizeTranslationPayloadTests(unittest.TestCase):
         self.assertEqual(stats["total_entries"], 4)
         self.assertEqual(stats["emitted_entries"], 2)
         self.assertEqual(stats["skipped_empty_translation"], 1)
-        self.assertEqual(stats["skipped_below_stage"], 1)
+        self.assertEqual(stats["skipped_filtered_stage"], 1)
+
+    def test_allowed_stages_filter_excludes_questioned_entries(self) -> None:
+        payload = [
+            {"key": "item.translated", "translation": "Translated", "stage": 1},
+            {"key": "item.questioned", "translation": "Questioned", "stage": 2},
+            {"key": "item.checked", "translation": "Checked", "stage": 3},
+        ]
+
+        mapping, stats = sync_module.normalize_translation_payload(
+            payload,
+            allowed_stages={1, 3, 5, 9},
+        )
+
+        self.assertEqual(
+            mapping,
+            {
+                "item.checked": "Checked",
+                "item.translated": "Translated",
+            },
+        )
+        self.assertEqual(stats["skipped_filtered_stage"], 1)
+
+    def test_hidden_entries_export_original_text_when_enabled(self) -> None:
+        payload = [
+            {"key": "item.hidden", "original": "Original Text", "translation": "", "stage": -1},
+            {"key": "item.reviewed", "translation": "Reviewed Text", "stage": 5},
+        ]
+
+        mapping, stats = sync_module.normalize_translation_payload(
+            payload,
+            allowed_stages={-1, 5, 9},
+        )
+
+        self.assertEqual(
+            mapping,
+            {
+                "item.hidden": "Original Text",
+                "item.reviewed": "Reviewed Text",
+            },
+        )
+        self.assertEqual(stats["skipped_empty_translation"], 0)
 
     def test_accepts_existing_flat_json_mapping(self) -> None:
         payload = {
@@ -241,10 +301,13 @@ class SyncProjectsTests(unittest.TestCase):
                         "projects:",
                         "  - locale: en_us",
                         "    project_id: 16320",
+                        "    allowed_stages: [-1, 5, 9]",
                         "  - locale: ru_ru",
                         "    project_id: 16525",
+                        "    allowed_stages: [-1, 5, 9]",
                         "  - locale: ja_jp",
                         "    project_id: 18185",
+                        "    allowed_stages: [-1, 1, 3, 5, 9]",
                     ]
                 )
                 + "\n",
@@ -271,13 +334,11 @@ class SyncProjectsTests(unittest.TestCase):
             manifest = sync_module.sync_projects(
                 client=client,
                 release_product="gto",
-                project_ids=[16320],
-                configured_locales=["en_us", "ru_ru", "ja_jp"],
+                project_entries=[project_config_module.get_project_entries(config)[0]],
                 config_path=config_path,
                 config=config,
                 output_dir=output_dir,
                 manifest_path=manifest_path,
-                min_stage=1,
                 primary_project_id=16320,
             )
 
@@ -297,15 +358,13 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(core_path.read_text(encoding="utf-8")),
                 {
-                    "key.a": "Alpha",
+                    "key.hidden": "Hidden Original",
                     "key.c": "Gamma",
                 },
             )
             self.assertEqual(
                 json.loads(odyssey_path.read_text(encoding="utf-8")),
-                {
-                    "key.d": "Delta",
-                },
+                {},
             )
 
             written_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -317,6 +376,7 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertEqual(project_config_module.get_current_version(updated_config), "0.5.4")
             self.assertEqual(written_manifest["files"][0]["remote_name"], "GTOCore/en_us.json")
             self.assertEqual(written_manifest["files"][0]["stats"]["emitted_entries"], 2)
+            self.assertEqual(written_manifest["files"][0]["allowed_stages"], [-1, 5, 9])
             self.assertEqual(
                 written_manifest["files"][0]["output_path"],
                 "en_us/resourcepacks/gto-translations-en_us/assets/gtocore/lang/en_us.json",
@@ -325,6 +385,54 @@ class SyncProjectsTests(unittest.TestCase):
                 "en_us/resourcepacks/gto-translations-en_us/pack.mcmeta",
                 written_manifest["generated_paths"],
             )
+        finally:
+            shutil.rmtree(temp_root, ignore_errors=True)
+
+    def test_sync_projects_uses_per_project_stage_thresholds(self) -> None:
+        client = FakeClient()
+        temp_root = REPO_ROOT / f".tmp-sync-thresholds-test-{uuid.uuid4().hex}"
+        try:
+            temp_root.mkdir(parents=True, exist_ok=False)
+            config_path = temp_root / ".paratranz-sync.yml"
+            config_path.write_text(
+                "\n".join(
+                    [
+                        "release:",
+                        "  product: gto",
+                        "  primary_project_id: 16320",
+                        "  current_version: 0.5.4",
+                        "projects:",
+                        "  - locale: ja_jp",
+                        "    project_id: 18185",
+                        "    allowed_stages: [-1, 1, 3, 5, 9]",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            config = project_config_module.load_project_config(config_path)
+            manifest_path = temp_root / ".paratranz-sync" / "manifest.json"
+            manifest = sync_module.sync_projects(
+                client=client,
+                release_product="gto",
+                project_entries=project_config_module.get_project_entries(config),
+                config_path=config_path,
+                config=config,
+                output_dir=temp_root,
+                manifest_path=manifest_path,
+                primary_project_id=16320,
+            )
+
+            ja_path = temp_root / "ja_jp" / "resourcepacks" / "gto-translations-ja_jp" / "assets" / "gtocore" / "lang" / "ja_jp.json"
+            self.assertEqual(
+                json.loads(ja_path.read_text(encoding="utf-8")),
+                {
+                    "key.jp.hidden": "JP Hidden Original",
+                    "key.jp.reviewed": "Reviewed",
+                    "key.jp.translated": "Translated",
+                },
+            )
+            self.assertEqual(manifest["files"][0]["allowed_stages"], [-1, 1, 3, 5, 9])
         finally:
             shutil.rmtree(temp_root, ignore_errors=True)
 
