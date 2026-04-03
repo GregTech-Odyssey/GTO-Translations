@@ -1,0 +1,80 @@
+name: Sync Paratranz Translations
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Sync Paratranz files
+        env:
+          PARATRANZ_TOKEN: ${{ secrets.PARATRANZ_TOKEN }}
+        run: |
+          if [ -z "$PARATRANZ_TOKEN" ]; then
+            echo "PARATRANZ_TOKEN is not configured."
+            exit 1
+          fi
+
+          python scripts/sync_paratranz_to_mc.py
+
+      - name: Build resource-pack artifacts
+        run: python scripts/build_resourcepack_artifacts.py
+
+      - name: Upload en_us artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gto-translations-en_us
+          path: dist/artifacts/en_us/resourcepacks
+          if-no-files-found: error
+
+      - name: Upload ru_ru artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gto-translations-ru_ru
+          path: dist/artifacts/ru_ru/resourcepacks
+          if-no-files-found: error
+
+      - name: Upload ja_jp artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gto-translations-ja_jp
+          path: dist/artifacts/ja_jp/resourcepacks
+          if-no-files-found: error
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gto-translations-all-locales
+          path: dist/artifacts/all-locales/resourcepacks
+          if-no-files-found: error
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet -- en_us ru_ru ja_jp; then
+            echo "No translation changes detected."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add en_us ru_ru ja_jp
+          git commit -m "chore: sync Paratranz translations"
+          git push
