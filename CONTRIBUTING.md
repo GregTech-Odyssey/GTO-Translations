@@ -6,6 +6,7 @@ Project configuration is stored in `.paratranz-sync.yml`.
 
 - `release.product`: release prefix, currently `gto`
 - `release.primary_project_id`: Paratranz project used as the version source
+- `release.current_version`: last synced upstream version, updated automatically by the sync workflow
 - `projects`: supported locales and their Paratranz project IDs
 
 ## Sync
@@ -14,10 +15,13 @@ Project configuration is stored in `.paratranz-sync.yml`.
 
 1. Runs tests.
 2. Pulls translations from Paratranz.
-3. Resolves the release line from the primary project's `extra.version`.
-4. Builds resource-pack artifacts.
-5. Uploads artifacts.
-6. Commits generated translation changes back to the repository when needed.
+3. Writes the primary project's current version back to `.paratranz-sync.yml`.
+4. Checks whether `.paratranz-sync.yml` or any generated locale files changed.
+5. Stops early when there are no changes.
+6. Commits generated translation changes when needed.
+7. Builds resource-pack artifacts.
+8. Uploads artifacts.
+9. Pushes the commit after a successful build/upload.
 
 If non-primary projects report a different `extra.version`, the workflow emits a GitHub Actions warning and continues.
 

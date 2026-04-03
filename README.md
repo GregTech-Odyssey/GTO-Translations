@@ -12,9 +12,9 @@ Paratranz 项目中的翻译会定期同步到本仓库。
 
 ## Downloads
 
-Stable releases can be downloaded from GitHub Releases.
+Stable releases can be downloaded from [GitHub Releases](https://github.com/GregTech-Odyssey/GTO-Translations/releases).
 
-稳定版请从 GitHub Releases 下载。
+稳定版请从 [GitHub Releases](https://github.com/GregTech-Odyssey/GTO-Translations/releases) 下载。
 
 Latest snapshot builds can be downloaded from GitHub Actions artifacts in the `Sync Paratranz Translations` workflow.
 
@@ -60,8 +60,6 @@ By contributing translations through the Paratranz project, contributors agree t
 
 通过 Paratranz 项目提交翻译即表示贡献者同意其翻译内容可按照本仓库的许可证进行发布与分发。
 
----
-
 ## Copyright Notice
 
 Original texts (such as quest descriptions, mod texts, and other in-game content) belong to their respective authors and are **not licensed under this repository**.
@@ -75,8 +73,6 @@ The contents of this repository are primarily contributed by the community. Unle
 GregTech-Odyssey and the maintainers of this repository do not treat such content as official content and make no express or implied warranties regarding its accuracy, completeness, fitness for a particular purpose, or continued availability.
 
 GregTech-Odyssey 及本仓库维护者不将这些内容视为官方内容，亦不对其准确性、完整性、适用性或持续可用性作出任何明示或默示保证。
-
----
 
 ## License
 

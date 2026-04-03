@@ -86,10 +86,13 @@ def load_project_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any
 
     product = release.get("product")
     primary_project_id = release.get("primary_project_id")
+    current_version = release.get("current_version")
     if not isinstance(product, str) or not product.strip():
         raise ValueError("release.product must be a non-empty string.")
     if not isinstance(primary_project_id, int):
         raise ValueError("release.primary_project_id must be an integer.")
+    if current_version is not None and (not isinstance(current_version, str) or not current_version.strip()):
+        raise ValueError("release.current_version must be a non-empty string when present.")
 
     normalized_projects: list[dict[str, Any]] = []
     seen_locales: set[str] = set()
@@ -118,6 +121,7 @@ def load_project_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any
         "release": {
             "product": product.strip(),
             "primary_project_id": primary_project_id,
+            "current_version": current_version.strip() if isinstance(current_version, str) else None,
         },
         "projects": normalized_projects,
     }
@@ -131,6 +135,22 @@ def get_primary_project_id(config: dict[str, Any]) -> int:
     return int(config["release"]["primary_project_id"])
 
 
+def get_current_version(config: dict[str, Any]) -> str | None:
+    value = config["release"].get("current_version")
+    return str(value) if isinstance(value, str) and value else None
+
+
+def set_current_version(config: dict[str, Any], version: str) -> None:
+    normalized_version = str(version).strip()
+    if not normalized_version:
+        raise ValueError("current version must be a non-empty string.")
+    config["release"]["current_version"] = normalized_version
+
+
+def build_release_line(product: str, version: str) -> str:
+    return f"{str(product).strip()}-{str(version).strip()}"
+
+
 def get_configured_locales(config: dict[str, Any]) -> list[str]:
     return [str(item["locale"]) for item in config["projects"]]
 
@@ -141,3 +161,29 @@ def get_configured_project_ids(config: dict[str, Any]) -> list[int]:
 
 def get_project_entries(config: dict[str, Any]) -> list[dict[str, Any]]:
     return [dict(item) for item in config["projects"]]
+
+
+def dump_project_config(config: dict[str, Any]) -> str:
+    release = config["release"]
+    lines = [
+        "release:",
+        f"  product: {release['product']}",
+        f"  primary_project_id: {release['primary_project_id']}",
+    ]
+    current_version = release.get("current_version")
+    if isinstance(current_version, str) and current_version:
+        lines.append(f"  current_version: {current_version}")
+
+    lines.extend(["", "projects:"])
+    for item in config["projects"]:
+        lines.append(f"  - locale: {item['locale']}")
+        lines.append(f"    project_id: {item['project_id']}")
+        artifact_label = item.get("artifact_label")
+        if isinstance(artifact_label, str) and artifact_label and artifact_label != item["locale"]:
+            lines.append(f"    artifact_label: {artifact_label}")
+
+    return "\n".join(lines) + "\n"
+
+
+def write_project_config(path: str | Path, config: dict[str, Any]) -> None:
+    Path(path).write_text(dump_project_config(config), encoding="utf-8")

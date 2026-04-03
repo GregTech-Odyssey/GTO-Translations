@@ -9,6 +9,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
+import project_config as project_config_module
 import sync_paratranz_to_mc as sync_module
 
 
@@ -229,6 +230,28 @@ class SyncProjectsTests(unittest.TestCase):
             stale_file.parent.mkdir(parents=True, exist_ok=True)
             stale_file.write_text("{}", encoding="utf-8")
 
+            config_path = temp_root / ".paratranz-sync.yml"
+            config_path.write_text(
+                "\n".join(
+                    [
+                        "release:",
+                        "  product: gto",
+                        "  primary_project_id: 16320",
+                        "  current_version: 0.5.3",
+                        "projects:",
+                        "  - locale: en_us",
+                        "    project_id: 16320",
+                        "  - locale: ru_ru",
+                        "    project_id: 16525",
+                        "  - locale: ja_jp",
+                        "    project_id: 18185",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            config = project_config_module.load_project_config(config_path)
+
             manifest_path = temp_root / ".paratranz-sync" / "manifest.json"
             manifest_path.parent.mkdir(parents=True, exist_ok=True)
             manifest_path.write_text(
@@ -250,6 +273,8 @@ class SyncProjectsTests(unittest.TestCase):
                 release_product="gto",
                 project_ids=[16320],
                 configured_locales=["en_us", "ru_ru", "ja_jp"],
+                config_path=config_path,
+                config=config,
                 output_dir=output_dir,
                 manifest_path=manifest_path,
                 min_stage=1,
@@ -288,6 +313,8 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertEqual(manifest["release_line"], "gto-0.5.4")
             self.assertEqual(written_manifest["release_line"], "gto-0.5.4")
             self.assertEqual(written_manifest["release_line_warnings"], [])
+            updated_config = project_config_module.load_project_config(config_path)
+            self.assertEqual(project_config_module.get_current_version(updated_config), "0.5.4")
             self.assertEqual(written_manifest["files"][0]["remote_name"], "GTOCore/en_us.json")
             self.assertEqual(written_manifest["files"][0]["stats"]["emitted_entries"], 2)
             self.assertEqual(

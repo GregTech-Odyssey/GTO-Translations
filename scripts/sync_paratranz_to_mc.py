@@ -11,11 +11,15 @@ from urllib.request import Request, urlopen
 
 from project_config import (
     DEFAULT_CONFIG_PATH,
+    build_release_line,
     get_configured_locales,
     get_configured_project_ids,
+    get_current_version,
     get_primary_project_id,
     get_release_product,
     load_project_config,
+    set_current_version,
+    write_project_config,
 )
 
 DEFAULT_BASE_URL = "https://paratranz.cn/api"
@@ -184,7 +188,7 @@ def resolve_release_line(
             )
 
     return {
-        "release_line": f"{release_product}-{normalized_version}",
+        "release_line": build_release_line(release_product, normalized_version),
         "primary_project_id": primary_project_id,
         "primary_project_name": primary_project.get("name"),
         "primary_version": normalized_version,
@@ -410,6 +414,8 @@ def sync_projects(
     release_product: str,
     project_ids: list[int],
     configured_locales: list[str],
+    config_path: Path,
+    config: dict[str, Any],
     output_dir: Path,
     manifest_path: Path,
     min_stage: int = DEFAULT_MIN_STAGE,
@@ -497,6 +503,10 @@ def sync_projects(
         manifest["projects"].append(project_entry)
 
     if write_files:
+        if get_current_version(config) != release_info["primary_version"]:
+            set_current_version(config, release_info["primary_version"])
+        write_project_config(config_path, config)
+
         for locale in sorted(pack_locales):
             pack_mcmeta_path = build_pack_mcmeta_path(output_dir, locale)
             keep_paths.add(pack_mcmeta_path)
@@ -526,6 +536,7 @@ def main() -> int:
         configured_locales = get_configured_locales(config)
         release_product = get_release_product(config)
         primary_project_id = get_primary_project_id(config)
+        config_path = Path(args.config)
         output_dir = Path(args.lang_root)
         manifest_path = Path(args.manifest)
         client = ParatranzClient(
@@ -538,6 +549,8 @@ def main() -> int:
             release_product=release_product,
             project_ids=project_ids,
             configured_locales=configured_locales,
+            config_path=config_path,
+            config=config,
             output_dir=output_dir,
             manifest_path=manifest_path,
             min_stage=args.min_stage,

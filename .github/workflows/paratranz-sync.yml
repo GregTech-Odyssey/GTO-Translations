@@ -37,6 +37,17 @@ jobs:
 
           python scripts/sync_paratranz_to_mc.py
 
+      - name: Emit release warnings
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path(".paratranz-sync/manifest.json").read_text(encoding="utf-8"))
+          for warning in manifest.get("release_line_warnings", []):
+            print(f"::warning::{warning}")
+          PY
+
       - name: Resolve configured locale paths
         id: locale_paths
         run: |
@@ -57,7 +68,7 @@ jobs:
       - name: Detect translation changes
         id: changes
         run: |
-          if git diff --quiet -- .paratranz-sync ${{ steps.locale_paths.outputs.locale_paths }}; then
+          if [ -z "$(git status --porcelain --untracked-files=all -- .paratranz-sync.yml ${{ steps.locale_paths.outputs.locale_paths }})" ]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
@@ -65,22 +76,28 @@ jobs:
 
       - name: Resolve release metadata
         id: release_meta
+        if: steps.changes.outputs.has_changes == 'true'
         run: |
           python - <<'PY'
-          import json
           import os
+          import sys
           from pathlib import Path
 
-          manifest = json.loads(Path(".paratranz-sync/manifest.json").read_text(encoding="utf-8"))
-          release_line = manifest["release_line"]
-          warnings = manifest.get("release_line_warnings", [])
+          sys.path.insert(0, str(Path("scripts").resolve()))
+          import project_config
+
+          config = project_config.load_project_config()
+          current_version = project_config.get_current_version(config)
+          if current_version is None:
+            raise RuntimeError("current_version was not written to .paratranz-sync.yml")
+          release_line = project_config.build_release_line(
+            project_config.get_release_product(config),
+            current_version,
+          )
 
           github_output = os.environ["GITHUB_OUTPUT"]
           with open(github_output, "a", encoding="utf-8") as fh:
             print(f"release_line={release_line}", file=fh)
-
-          for warning in warnings:
-            print(f"::warning::{warning}")
           PY
 
       - name: Commit translation changes
@@ -88,12 +105,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .paratranz-sync.yml
           git add ${{ steps.locale_paths.outputs.locale_paths }}
-          git add -f .paratranz-sync
           git commit -m "chore: sync Paratranz translations"
 
       - name: Compute artifact version
         id: version
+        if: steps.changes.outputs.has_changes == 'true'
         run: |
           short_sha="$(git rev-parse --short=8 HEAD)"
           build_date="$(date -u +"%y.%m.%d")"
@@ -104,6 +122,7 @@ jobs:
           echo "built_at=${built_at}" >> "$GITHUB_OUTPUT"
 
       - name: Build resource-pack artifacts
+        if: steps.changes.outputs.has_changes == 'true'
         run: |
           python scripts/build_resourcepack_artifacts.py \
             --artifact-version "${{ steps.version.outputs.artifact_version }}" \
@@ -112,6 +131,7 @@ jobs:
             --built-at "${{ steps.version.outputs.built_at }}"
 
       - name: Upload en_us artifact
+        if: steps.changes.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: en_us-${{ steps.version.outputs.artifact_version }}
@@ -119,6 +139,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload ru_ru artifact
+        if: steps.changes.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ru_ru-${{ steps.version.outputs.artifact_version }}
@@ -126,6 +147,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload ja_jp artifact
+        if: steps.changes.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ja_jp-${{ steps.version.outputs.artifact_version }}
@@ -133,6 +155,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload combined artifact
+        if: steps.changes.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: all-locales-${{ steps.version.outputs.artifact_version }}

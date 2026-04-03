@@ -27,6 +27,7 @@ class ProjectConfigTests(unittest.TestCase):
                     "release:",
                     "  product: gto",
                     "  primary_project_id: 16320",
+                    "  current_version: 0.5.4",
                     "projects:",
                     "  - locale: en_us",
                     "    project_id: 16320",
@@ -42,6 +43,7 @@ class ProjectConfigTests(unittest.TestCase):
 
         self.assertEqual(config_module.get_release_product(config), "gto")
         self.assertEqual(config_module.get_primary_project_id(config), 16320)
+        self.assertEqual(config_module.get_current_version(config), "0.5.4")
         self.assertEqual(config_module.get_configured_locales(config), ["en_us", "ru_ru"])
         self.assertEqual(config_module.get_configured_project_ids(config), [16320, 16525])
 
@@ -61,3 +63,23 @@ class ProjectConfigTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             config_module.load_project_config(self.config_path)
+
+    def test_write_project_config_persists_current_version(self) -> None:
+        config = {
+            "release": {
+                "product": "gto",
+                "primary_project_id": 16320,
+                "current_version": None,
+            },
+            "projects": [
+                {"locale": "en_us", "project_id": 16320, "artifact_label": "en_us"},
+                {"locale": "ru_ru", "project_id": 16525, "artifact_label": "ru_ru"},
+            ],
+        }
+
+        config_module.set_current_version(config, "0.5.5")
+        config_module.write_project_config(self.config_path, config)
+        reloaded = config_module.load_project_config(self.config_path)
+
+        self.assertEqual(config_module.get_current_version(reloaded), "0.5.5")
+        self.assertEqual(config_module.build_release_line("gto", "0.5.5"), "gto-0.5.5")
