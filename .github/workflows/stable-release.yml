@@ -66,14 +66,7 @@ jobs:
         run: |
           cat <<'EOF' > dist/release/RELEASE_NOTES.md
           Stable translation release promoted manually from the sync pipeline.
-
-          - `gto-lang-en_us-${{ steps.release.outputs.tag_name }}.zip`: English resource pack
-          - `gto-lang-ru_ru-${{ steps.release.outputs.tag_name }}.zip`: Russian resource pack
-          - `gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}.zip`: Japanese resource pack
-          - `gto-lang-all-locales-${{ steps.release.outputs.tag_name }}.zip`: Combined package containing all supported locales
-
-          ---
-
+          
           - Release line: ${{ steps.release.outputs.release_line }}
           - Artifact version: ${{ steps.release.outputs.tag_name }}
           - Source revision: ${{ steps.release.outputs.source_revision }}
