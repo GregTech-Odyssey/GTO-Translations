@@ -27,7 +27,7 @@ DEFAULT_OUTPUT_DIR = "."
 DEFAULT_MANIFEST_PATH = ".paratranz-sync/manifest.json"
 DEFAULT_TIMEOUT = 30
 MAX_RETRIES = 3
-RESOURCEPACK_NAME_PREFIX = "gto-translations"
+RESOURCEPACK_NAME_PREFIX = "gto-lang"
 DEFAULT_TIMEZONE = timezone(timedelta(hours=8), name="UTC+08:00")
 MODULE_OUTPUT_PATHS = {
     "gtocore": ("assets", "gtocore", "lang"),
@@ -42,7 +42,7 @@ class ParatranzClient:
         self.headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/json",
-            "User-Agent": "gto-translations-sync/1.0",
+            "User-Agent": "gto-lang-sync/1.0",
         }
 
     def _get_json(self, path: str) -> Any:

@@ -7,7 +7,7 @@ from typing import Any, Iterable
 
 from project_config import DEFAULT_CONFIG_PATH, get_configured_locales, load_project_config
 
-RESOURCEPACK_NAME_PREFIX = "gto-translations"
+RESOURCEPACK_NAME_PREFIX = "gto-lang"
 ARTIFACT_METADATA_FILE_NAME = "gto-artifact-metadata.json"
 DEFAULT_COMBINED_LABEL = "all-locales"
 
@@ -67,6 +67,13 @@ def get_resourcepack_root(repo_root: Path, locale: str) -> Path:
 
 def build_resourcepack_name(label: str) -> str:
     return f"{RESOURCEPACK_NAME_PREFIX}-{label}"
+
+
+def build_packaged_resourcepack_name(label: str, version: str | None = None) -> str:
+    base_name = build_resourcepack_name(label)
+    if not version:
+        return base_name
+    return f"{base_name}-{version}"
 
 
 def ensure_resourcepack_exists(repo_root: Path, locale: str) -> Path:
@@ -152,7 +159,11 @@ def stage_single_locale_artifact(
     artifact_metadata: dict[str, Any] | None = None,
 ) -> Path:
     source = ensure_resourcepack_exists(repo_root, locale)
-    target = output_dir / locale / "resourcepacks" / build_resourcepack_name(locale)
+    packaged_name = build_packaged_resourcepack_name(
+        locale,
+        artifact_metadata.get("artifact_version") if isinstance(artifact_metadata, dict) else None,
+    )
+    target = output_dir / locale / packaged_name
     reset_dir(target.parent)
     shutil.copytree(source, target, dirs_exist_ok=True)
     write_artifact_metadata(target, artifact_metadata)
@@ -169,7 +180,11 @@ def stage_combined_artifact(
     if not locales:
         raise ValueError("Cannot build combined artifact without locales.")
 
-    target = output_dir / DEFAULT_COMBINED_LABEL / "resourcepacks" / build_resourcepack_name(DEFAULT_COMBINED_LABEL)
+    packaged_name = build_packaged_resourcepack_name(
+        DEFAULT_COMBINED_LABEL,
+        artifact_metadata.get("artifact_version") if isinstance(artifact_metadata, dict) else None,
+    )
+    target = output_dir / DEFAULT_COMBINED_LABEL / packaged_name
     reset_dir(target.parent)
 
     expected_pack_format: int | None = None

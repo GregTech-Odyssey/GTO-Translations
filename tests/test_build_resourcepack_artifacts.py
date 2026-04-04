@@ -24,7 +24,7 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
         self.temp_root.mkdir(parents=True, exist_ok=False)
 
         for locale in ("en_us", "ru_ru"):
-            base = self.temp_root / locale / "resourcepacks" / f"gto-translations-{locale}"
+            base = self.temp_root / locale / "resourcepacks" / f"gto-lang-{locale}"
             write_json(
                 base / "pack.mcmeta",
                 {
@@ -66,12 +66,12 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
             artifact_metadata=metadata,
         )
 
-        self.assertEqual(artifact_root, self.output_dir / "en_us" / "resourcepacks")
-        self.assertTrue((artifact_root / "gto-translations-en_us" / "pack.mcmeta").exists())
-        self.assertTrue((artifact_root / "gto-translations-en_us" / "assets" / "gtocore" / "lang" / "en_us.json").exists())
+        self.assertEqual(artifact_root, self.output_dir / "en_us")
+        self.assertTrue((artifact_root / "gto-lang-en_us-gto-0.5.4-dev-26.04.04.12-abcd1234" / "pack.mcmeta").exists())
+        self.assertTrue((artifact_root / "gto-lang-en_us-gto-0.5.4-dev-26.04.04.12-abcd1234" / "assets" / "gtocore" / "lang" / "en_us.json").exists())
         self.assertEqual(
             json.loads(
-                (artifact_root / "gto-translations-en_us" / artifacts_module.ARTIFACT_METADATA_FILE_NAME).read_text(encoding="utf-8")
+                (artifact_root / "gto-lang-en_us-gto-0.5.4-dev-26.04.04.12-abcd1234" / artifacts_module.ARTIFACT_METADATA_FILE_NAME).read_text(encoding="utf-8")
             )["artifact_version"],
             "gto-0.5.4-dev-26.04.04.12-abcd1234",
         )
@@ -92,7 +92,8 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
             artifact_metadata=metadata,
         )
 
-        combined_pack = artifact_root / "gto-translations-all-locales"
+        self.assertEqual(artifact_root, self.output_dir / "all-locales")
+        combined_pack = artifact_root / "gto-lang-all-locales-gto-0.5.4-dev-26.04.04.12-abcd1234"
         self.assertTrue((combined_pack / "pack.mcmeta").exists())
         self.assertEqual(
             json.loads((combined_pack / "pack.mcmeta").read_text(encoding="utf-8"))["pack"]["description"],
@@ -109,7 +110,7 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
 
     def test_stage_combined_artifact_rejects_mismatched_pack_metadata(self) -> None:
         write_json(
-            self.temp_root / "ru_ru" / "resourcepacks" / "gto-translations-ru_ru" / "pack.mcmeta",
+            self.temp_root / "ru_ru" / "resourcepacks" / "gto-lang-ru_ru" / "pack.mcmeta",
             {
                 "pack": {
                     "pack_format": 99,

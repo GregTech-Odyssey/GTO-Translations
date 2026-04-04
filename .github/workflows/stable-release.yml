@@ -53,11 +53,14 @@ jobs:
       - name: Package release assets
         run: |
           mkdir -p dist/release
-          cd dist/artifacts
-          zip -r "../release/gto-translations-en_us-${{ steps.release.outputs.tag_name }}.zip" en_us/resourcepacks
-          zip -r "../release/gto-translations-ru_ru-${{ steps.release.outputs.tag_name }}.zip" ru_ru/resourcepacks
-          zip -r "../release/gto-translations-ja_jp-${{ steps.release.outputs.tag_name }}.zip" ja_jp/resourcepacks
-          zip -r "../release/gto-translations-all-locales-${{ steps.release.outputs.tag_name }}.zip" all-locales/resourcepacks
+          cd dist/artifacts/en_us
+          zip -r "../../release/gto-lang-en_us-${{ steps.release.outputs.tag_name }}.zip" gto-lang-en_us-${{ steps.release.outputs.tag_name }}
+          cd ../ru_ru
+          zip -r "../../release/gto-lang-ru_ru-${{ steps.release.outputs.tag_name }}.zip" gto-lang-ru_ru-${{ steps.release.outputs.tag_name }}
+          cd ../ja_jp
+          zip -r "../../release/gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}.zip" gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}
+          cd ../all-locales
+          zip -r "../../release/gto-lang-all-locales-${{ steps.release.outputs.tag_name }}.zip" gto-lang-all-locales-${{ steps.release.outputs.tag_name }}
 
       - name: Write release notes
         run: |

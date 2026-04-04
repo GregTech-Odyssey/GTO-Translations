@@ -265,7 +265,7 @@ class PathSafetyTests(unittest.TestCase):
 
         self.assertEqual(
             result,
-            output_dir / "en_us" / "resourcepacks" / "gto-translations-en_us" / "assets" / "gtocore" / "lang" / "en_us.json",
+            output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "assets" / "gtocore" / "lang" / "en_us.json",
         )
 
     def test_build_output_path_rewrites_gtodyssey_to_game_overlay_structure(self) -> None:
@@ -275,7 +275,7 @@ class PathSafetyTests(unittest.TestCase):
 
         self.assertEqual(
             result,
-            output_dir / "ja_jp" / "resourcepacks" / "gto-translations-ja_jp" / "assets" / "gto" / "lang" / "ja_jp.json",
+            output_dir / "ja_jp" / "resourcepacks" / "gto-lang-ja_jp" / "assets" / "gto" / "lang" / "ja_jp.json",
         )
 
 
@@ -342,9 +342,9 @@ class SyncProjectsTests(unittest.TestCase):
                 primary_project_id=16320,
             )
 
-            core_path = output_dir / "en_us" / "resourcepacks" / "gto-translations-en_us" / "assets" / "gtocore" / "lang" / "en_us.json"
-            odyssey_path = output_dir / "en_us" / "resourcepacks" / "gto-translations-en_us" / "assets" / "gto" / "lang" / "en_us.json"
-            pack_meta_path = output_dir / "en_us" / "resourcepacks" / "gto-translations-en_us" / "pack.mcmeta"
+            core_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "assets" / "gtocore" / "lang" / "en_us.json"
+            odyssey_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "assets" / "gto" / "lang" / "en_us.json"
+            pack_meta_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "pack.mcmeta"
 
             self.assertFalse(stale_file.exists())
             self.assertTrue(core_path.exists())
@@ -379,10 +379,10 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertEqual(written_manifest["files"][0]["allowed_stages"], [-1, 5, 9])
             self.assertEqual(
                 written_manifest["files"][0]["output_path"],
-                "en_us/resourcepacks/gto-translations-en_us/assets/gtocore/lang/en_us.json",
+                "en_us/resourcepacks/gto-lang-en_us/assets/gtocore/lang/en_us.json",
             )
             self.assertIn(
-                "en_us/resourcepacks/gto-translations-en_us/pack.mcmeta",
+                "en_us/resourcepacks/gto-lang-en_us/pack.mcmeta",
                 written_manifest["generated_paths"],
             )
         finally:
@@ -423,7 +423,7 @@ class SyncProjectsTests(unittest.TestCase):
                 primary_project_id=16320,
             )
 
-            ja_path = temp_root / "ja_jp" / "resourcepacks" / "gto-translations-ja_jp" / "assets" / "gtocore" / "lang" / "ja_jp.json"
+            ja_path = temp_root / "ja_jp" / "resourcepacks" / "gto-lang-ja_jp" / "assets" / "gtocore" / "lang" / "ja_jp.json"
             self.assertEqual(
                 json.loads(ja_path.read_text(encoding="utf-8")),
                 {
