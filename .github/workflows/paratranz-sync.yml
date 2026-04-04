@@ -138,7 +138,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: en_us-${{ steps.version.outputs.artifact_version }}
-          path: dist/artifacts/en_us/gto-lang-en_us-${{ steps.version.outputs.artifact_version }}
+          path: dist/artifacts/gto-lang-en_us-${{ steps.version.outputs.artifact_version }}
           if-no-files-found: error
 
       - name: Upload ru_ru artifact
@@ -146,7 +146,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ru_ru-${{ steps.version.outputs.artifact_version }}
-          path: dist/artifacts/ru_ru/gto-lang-ru_ru-${{ steps.version.outputs.artifact_version }}
+          path: dist/artifacts/gto-lang-ru_ru-${{ steps.version.outputs.artifact_version }}
           if-no-files-found: error
 
       - name: Upload ja_jp artifact
@@ -154,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ja_jp-${{ steps.version.outputs.artifact_version }}
-          path: dist/artifacts/ja_jp/gto-lang-ja_jp-${{ steps.version.outputs.artifact_version }}
+          path: dist/artifacts/gto-lang-ja_jp-${{ steps.version.outputs.artifact_version }}
           if-no-files-found: error
 
       - name: Upload combined artifact
@@ -162,7 +162,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: all-locales-${{ steps.version.outputs.artifact_version }}
-          path: dist/artifacts/all-locales/gto-lang-all-locales-${{ steps.version.outputs.artifact_version }}
+          path: dist/artifacts/gto-lang-all-locales-${{ steps.version.outputs.artifact_version }}
           if-no-files-found: error
 
       - name: Push translation commit

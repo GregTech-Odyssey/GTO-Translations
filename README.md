@@ -20,14 +20,22 @@ Latest snapshot builds can be downloaded from GitHub Actions artifacts in the `S
 
 最新快照构建可在 GitHub Actions 的 `Sync Paratranz Translations` 工作流中下载 artifacts。
 
-Available packages:
+How to use the downloaded zip:
 
-可下载内容：
+下载后的 zip 使用方法：
 
-- `en_us`: English resource pack
-- `ru_ru`: Russian resource pack
-- `ja_jp`: Japanese resource pack
-- `all-locales`: Combined package containing all supported locales
+1. Open Minecraft.
+2. Go to `Options -> Resource Packs`.
+3. Click `Open Pack Folder`.
+4. Drag the downloaded zip into that folder.
+5. Enable the pack in the Resource Packs screen. (Make sure it is at the top of the list!)
+
+
+1. 打开 Minecraft。
+2. 进入 `选项 -> 资源包`。
+3. 点击 `打开资源包文件夹`。
+4. 将下载的 zip 直接拖进去。
+5. 回到资源包界面并启用对应资源包。（要放在最上面！）
 
 ---
 

@@ -163,11 +163,11 @@ def stage_single_locale_artifact(
         locale,
         artifact_metadata.get("artifact_version") if isinstance(artifact_metadata, dict) else None,
     )
-    target = output_dir / locale / packaged_name
-    reset_dir(target.parent)
+    target = output_dir / packaged_name
+    reset_dir(target)
     shutil.copytree(source, target, dirs_exist_ok=True)
     write_artifact_metadata(target, artifact_metadata)
-    return target.parent
+    return target
 
 
 def stage_combined_artifact(
@@ -184,8 +184,8 @@ def stage_combined_artifact(
         DEFAULT_COMBINED_LABEL,
         artifact_metadata.get("artifact_version") if isinstance(artifact_metadata, dict) else None,
     )
-    target = output_dir / DEFAULT_COMBINED_LABEL / packaged_name
-    reset_dir(target.parent)
+    target = output_dir / packaged_name
+    reset_dir(target)
 
     expected_pack_format: int | None = None
     for locale in locales:
@@ -211,7 +211,7 @@ def stage_combined_artifact(
     )
     write_artifact_metadata(target, artifact_metadata)
 
-    return target.parent
+    return target
 
 
 def main() -> int:
@@ -222,6 +222,7 @@ def main() -> int:
         repo_root = Path(args.repo_root).resolve()
         output_dir = Path(args.output_dir).resolve()
         locales = parse_locales(args.locales) if args.locales else get_configured_locales(config)
+        reset_dir(output_dir)
 
         staged_paths: list[Path] = []
         for locale in locales:

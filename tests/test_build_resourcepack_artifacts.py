@@ -66,12 +66,12 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
             artifact_metadata=metadata,
         )
 
-        self.assertEqual(artifact_root, self.output_dir / "en_us")
-        self.assertTrue((artifact_root / "gto-lang-en_us-gto-0.5.4-dev-26.04.04.12-abcd1234" / "pack.mcmeta").exists())
-        self.assertTrue((artifact_root / "gto-lang-en_us-gto-0.5.4-dev-26.04.04.12-abcd1234" / "assets" / "gtocore" / "lang" / "en_us.json").exists())
+        self.assertEqual(artifact_root, self.output_dir / "gto-lang-en_us-gto-0.5.4-dev-26.04.04.12-abcd1234")
+        self.assertTrue((artifact_root / "pack.mcmeta").exists())
+        self.assertTrue((artifact_root / "assets" / "gtocore" / "lang" / "en_us.json").exists())
         self.assertEqual(
             json.loads(
-                (artifact_root / "gto-lang-en_us-gto-0.5.4-dev-26.04.04.12-abcd1234" / artifacts_module.ARTIFACT_METADATA_FILE_NAME).read_text(encoding="utf-8")
+                (artifact_root / artifacts_module.ARTIFACT_METADATA_FILE_NAME).read_text(encoding="utf-8")
             )["artifact_version"],
             "gto-0.5.4-dev-26.04.04.12-abcd1234",
         )
@@ -92,8 +92,8 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
             artifact_metadata=metadata,
         )
 
-        self.assertEqual(artifact_root, self.output_dir / "all-locales")
-        combined_pack = artifact_root / "gto-lang-all-locales-gto-0.5.4-dev-26.04.04.12-abcd1234"
+        self.assertEqual(artifact_root, self.output_dir / "gto-lang-all-locales-gto-0.5.4-dev-26.04.04.12-abcd1234")
+        combined_pack = artifact_root
         self.assertTrue((combined_pack / "pack.mcmeta").exists())
         self.assertEqual(
             json.loads((combined_pack / "pack.mcmeta").read_text(encoding="utf-8"))["pack"]["description"],
