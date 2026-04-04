@@ -69,6 +69,8 @@ jobs:
           - `gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}.zip`: Japanese resource pack
           - `gto-lang-all-locales-${{ steps.release.outputs.tag_name }}.zip`: Combined package containing all supported locales
 
+          ---
+
           - Release line: ${{ steps.release.outputs.release_line }}
           - Artifact version: ${{ steps.release.outputs.tag_name }}
           - Source revision: ${{ steps.release.outputs.source_revision }}
