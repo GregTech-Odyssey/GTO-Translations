@@ -30,6 +30,7 @@ How to use the downloaded zip:
 4. Drag the downloaded zip into that folder.
 5. Enable the pack in the Resource Packs screen. (Make sure it is at the top of the list!)
 
+===
 
 1. 打开 Minecraft。
 2. 进入 `选项 -> 资源包`。
