@@ -34,9 +34,11 @@ jobs:
         run: |
           tag_name="${GITHUB_REF_NAME}"
           release_line="${tag_name%-r*}"
+          release_title="GTO-Translation ${tag_name}"
           built_at="$(date +"%Y-%m-%dT%H:%M:%S%:z")"
           echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
           echo "release_line=${release_line}" >> "$GITHUB_OUTPUT"
+          echo "release_title=${release_title}" >> "$GITHUB_OUTPUT"
           echo "source_revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "built_at=${built_at}" >> "$GITHUB_OUTPUT"
 
@@ -72,6 +74,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ steps.release.outputs.tag_name }}" dist/release/*.zip \
-            --title "${{ steps.release.outputs.tag_name }}" \
-            --notes-file dist/release/RELEASE_NOTES.md
+          if gh release view "${{ steps.release.outputs.tag_name }}" > /dev/null 2>&1; then
+            gh release edit "${{ steps.release.outputs.tag_name }}" \
+              --title "${{ steps.release.outputs.release_title }}" \
+              --notes-file dist/release/RELEASE_NOTES.md
+            gh release upload "${{ steps.release.outputs.tag_name }}" dist/release/*.zip --clobber
+          else
+            gh release create "${{ steps.release.outputs.tag_name }}" dist/release/*.zip \
+              --title "${{ steps.release.outputs.release_title }}" \
+              --notes-file dist/release/RELEASE_NOTES.md
+          fi
