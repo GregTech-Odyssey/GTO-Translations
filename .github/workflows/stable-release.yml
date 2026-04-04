@@ -53,11 +53,14 @@ jobs:
       - name: Package release assets
         run: |
           mkdir -p dist/release
-          cd dist/artifacts
-          zip -r "../release/gto-lang-en_us-${{ steps.release.outputs.tag_name }}.zip" gto-lang-en_us-${{ steps.release.outputs.tag_name }}
-          zip -r "../release/gto-lang-ru_ru-${{ steps.release.outputs.tag_name }}.zip" gto-lang-ru_ru-${{ steps.release.outputs.tag_name }}
-          zip -r "../release/gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}.zip" gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}
-          zip -r "../release/gto-lang-all-locales-${{ steps.release.outputs.tag_name }}.zip" gto-lang-all-locales-${{ steps.release.outputs.tag_name }}
+          cd dist/artifacts/gto-lang-en_us-${{ steps.release.outputs.tag_name }}
+          zip -r "../../release/gto-lang-en_us-${{ steps.release.outputs.tag_name }}.zip" pack.mcmeta assets gto-artifact-metadata.json
+          cd ../gto-lang-ru_ru-${{ steps.release.outputs.tag_name }}
+          zip -r "../../release/gto-lang-ru_ru-${{ steps.release.outputs.tag_name }}.zip" pack.mcmeta assets gto-artifact-metadata.json
+          cd ../gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}
+          zip -r "../../release/gto-lang-ja_jp-${{ steps.release.outputs.tag_name }}.zip" pack.mcmeta assets gto-artifact-metadata.json
+          cd ../gto-lang-all-locales-${{ steps.release.outputs.tag_name }}
+          zip -r "../../release/gto-lang-all-locales-${{ steps.release.outputs.tag_name }}.zip" pack.mcmeta assets gto-artifact-metadata.json
 
       - name: Write release notes
         run: |
