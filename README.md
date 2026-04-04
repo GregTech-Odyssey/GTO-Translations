@@ -28,19 +28,17 @@ How to use the downloaded zip:
 
 下载后的 zip 使用方法：
 
-1. Open Minecraft.
-2. Go to `Options -> Resource Packs`.
-3. Click `Open Pack Folder`.
-4. Drag the downloaded zip into that folder.
-5. Enable the pack in the Resource Packs screen. (Make sure it is at the top of the list!)
+1. Open the game folder.
+2. Go to `config/openloader`.
+3. Drag the downloaded zip into that folder directly. Do not unzip it.
+4. Make sure the pack stays at the top of the list. If it is not enabled yet, enable it first.
 
 ===
 
-1. 打开 Minecraft。
-2. 进入 `选项 -> 资源包`。
-3. 点击 `打开资源包文件夹`。
-4. 将下载的 zip 直接拖进去。
-5. 回到资源包界面并启用对应资源包。（要放在最上面！）
+1. 打开游戏文件夹。
+2. 进入 `config/openloader`。
+3. 将下载的 zip 直接拖进去，不需要解压。
+4. 确保该资源包位于列表最上方；如果尚未启用，请先启用。
 
 ---
 
