@@ -4,9 +4,13 @@
 
 🌐 社区主导的 GTO 翻译仓库
 
-Translations from Paratranz are periodically synchronized to this repository.
+Translations from Paratranz are periodically synchronized to this repository
 
-Paratranz 项目中的翻译会定期同步到本仓库。
+Paratranz 项目中的翻译会定期同步到本仓库
+
+**Only contains the part of the translation that has been manually reviewed**
+
+**只包含人工审查后的翻译内容**
 
 ---
 
