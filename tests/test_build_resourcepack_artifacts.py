@@ -22,6 +22,37 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
         self.temp_root = REPO_ROOT / f".tmp-artifact-test-{uuid.uuid4().hex}"
         self.output_dir = self.temp_root / "dist"
         self.temp_root.mkdir(parents=True, exist_ok=False)
+        write_json(
+            self.temp_root / ".paratranz-sync" / "manifest.json",
+            {
+                "files": [
+                    {
+                        "remote_name": "GTOCore/en_us.json",
+                        "output_path": "en_us/resourcepacks/gto-lang-en_us/assets/gtocore/lang/en_us.json",
+                        "total": 100,
+                        "stats": {"emitted_entries": 25},
+                    },
+                    {
+                        "remote_name": "GTOdyssey/en_us.json",
+                        "output_path": "en_us/resourcepacks/gto-lang-en_us/assets/gto/lang/en_us.json",
+                        "total": 40,
+                        "stats": {"emitted_entries": 10},
+                    },
+                    {
+                        "remote_name": "GTOCore/ru_ru.json",
+                        "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gtocore/lang/ru_ru.json",
+                        "total": 100,
+                        "stats": {"emitted_entries": 90},
+                    },
+                    {
+                        "remote_name": "GTOdyssey/ru_ru.json",
+                        "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gto/lang/ru_ru.json",
+                        "total": 40,
+                        "stats": {"emitted_entries": 20},
+                    },
+                ]
+            },
+        )
 
         for locale in ("en_us", "ru_ru"):
             base = self.temp_root / locale / "resourcepacks" / f"gto-lang-{locale}"
@@ -30,7 +61,7 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
                 {
                     "pack": {
                         "pack_format": 15,
-                        "description": f"GTO translations resource pack ({locale})",
+                        "description": f"GTO translations resource pack ({locale}) | seeded",
                     }
                 },
             )
@@ -97,7 +128,7 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
         self.assertTrue((combined_pack / "pack.mcmeta").exists())
         self.assertEqual(
             json.loads((combined_pack / "pack.mcmeta").read_text(encoding="utf-8"))["pack"]["description"],
-            "GTO translations resource pack (all-locales)",
+            "GTO translations resource pack (all-locales) | GTOCore 57.5% | GTOdyssey 37.5%",
         )
         self.assertTrue((combined_pack / "assets" / "gtocore" / "lang" / "en_us.json").exists())
         self.assertTrue((combined_pack / "assets" / "gtocore" / "lang" / "ru_ru.json").exists())

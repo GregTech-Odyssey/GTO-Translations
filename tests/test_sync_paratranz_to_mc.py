@@ -59,8 +59,8 @@ class FakeClient:
                 {
                     "id": 10,
                     "name": "GTOCore/en_us.json",
-                    "total": 3,
-                    "translated": 2,
+                    "total": 4,
+                    "translated": 3,
                     "reviewed": 1,
                     "modifiedAt": "2026-04-02T05:50:05.758Z",
                     "format": "jsonkv",
@@ -80,8 +80,8 @@ class FakeClient:
                 {
                     "id": 20,
                     "name": "GTOCore/ja_jp.json",
-                    "total": 2,
-                    "translated": 1,
+                    "total": 4,
+                    "translated": 3,
                     "reviewed": 0,
                     "modifiedAt": "2026-04-02T06:00:00.000Z",
                     "format": "jsonkv",
@@ -562,7 +562,7 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertEqual(client.detailed_string_calls, [(16320, 10), (16320, 11)])
             self.assertEqual(
                 json.loads(pack_meta_path.read_text(encoding="utf-8"))["pack"]["description"],
-                "GTO translations resource pack (en_us)",
+                "GTO translations resource pack (en_us) | GTOCore 75.0% | GTOdyssey 100.0%",
             )
 
             self.assertEqual(

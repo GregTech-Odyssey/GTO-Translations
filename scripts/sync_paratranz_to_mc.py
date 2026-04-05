@@ -34,6 +34,10 @@ MODULE_OUTPUT_PATHS = {
     "gtocore": ("assets", "gtocore", "lang"),
     "gtodyssey": ("assets", "gto", "lang"),
 }
+MODULE_DISPLAY_NAMES = {
+    "gtocore": "GTOCore",
+    "gtodyssey": "GTOdyssey",
+}
 EN_US_LOCALE = "en_us"
 
 
@@ -257,6 +261,50 @@ def build_pack_mcmeta(label: str) -> dict[str, Any]:
             "description": f"GTO translations resource pack ({label})",
         }
     }
+
+
+def extract_module_key(remote_name: str) -> str | None:
+    normalized = str(remote_name).replace("\\", "/").strip()
+    if "/" not in normalized:
+        return None
+    module_name = normalized.split("/", 1)[0].lower()
+    return module_name if module_name in MODULE_DISPLAY_NAMES else None
+
+
+def format_progress_percentage(emitted_entries: int, total_entries: int | None) -> str:
+    safe_total = int(total_entries) if isinstance(total_entries, int) and total_entries > 0 else 0
+    if safe_total <= 0:
+        return "0.0%"
+    return f"{(float(emitted_entries) / float(safe_total)) * 100:.1f}%"
+
+
+def build_progress_suffix(file_entries: list[dict[str, Any]]) -> str:
+    segments: list[str] = []
+    for module_key in MODULE_OUTPUT_PATHS:
+        matching_entry = next(
+            (
+                file_entry
+                for file_entry in file_entries
+                if extract_module_key(str(file_entry.get("remote_name", ""))) == module_key
+            ),
+            None,
+        )
+        if matching_entry is None:
+            continue
+        stats = matching_entry.get("stats")
+        emitted_entries = stats.get("emitted_entries") if isinstance(stats, dict) else 0
+        segments.append(
+            f"{MODULE_DISPLAY_NAMES[module_key]} {format_progress_percentage(int(emitted_entries), matching_entry.get('total'))}"
+        )
+    return " | ".join(segments)
+
+
+def build_locale_pack_description(label: str, file_entries: list[dict[str, Any]]) -> str:
+    base_description = f"GTO translations resource pack ({label})"
+    progress_suffix = build_progress_suffix(file_entries)
+    if not progress_suffix:
+        return base_description
+    return f"{base_description} | {progress_suffix}"
 
 
 def normalize_translation_payload(
@@ -488,6 +536,7 @@ def sync_projects(
     keep_paths: set[Path] = {manifest_path}
     protected_paths: set[Path] = {manifest_path, manifest_path.parent}
     pack_locales: set[str] = set()
+    locale_file_entries: dict[str, list[dict[str, Any]]] = {}
 
     for project_id in project_ids:
         project = client.get_project(project_id)
@@ -558,6 +607,7 @@ def sync_projects(
                 file_entry["min_stage"] = effective_min_stage
             manifest["files"].append(file_entry)
             project_entry["files"].append(file_entry)
+            locale_file_entries.setdefault(project_locale, []).append(file_entry)
             manifest["generated_paths"].append(str(output_path.relative_to(output_dir).as_posix()))
 
             if write_files:
@@ -574,7 +624,15 @@ def sync_projects(
             pack_mcmeta_path = build_pack_mcmeta_path(output_dir, locale)
             keep_paths.add(pack_mcmeta_path)
             manifest["generated_paths"].append(str(pack_mcmeta_path.relative_to(output_dir).as_posix()))
-            write_json_file(pack_mcmeta_path, build_pack_mcmeta(locale))
+            write_json_file(
+                pack_mcmeta_path,
+                {
+                    "pack": {
+                        "pack_format": 15,
+                        "description": build_locale_pack_description(locale, locale_file_entries.get(locale, [])),
+                    }
+                },
+            )
 
         write_json_file(manifest_path, manifest)
         cleanup_stale_outputs(

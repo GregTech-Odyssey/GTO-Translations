@@ -10,6 +10,11 @@ from project_config import DEFAULT_CONFIG_PATH, get_configured_locales, load_pro
 RESOURCEPACK_NAME_PREFIX = "gto-lang"
 ARTIFACT_METADATA_FILE_NAME = "gto-artifact-metadata.json"
 DEFAULT_COMBINED_LABEL = "all-locales"
+DEFAULT_MANIFEST_PATH = ".paratranz-sync/manifest.json"
+MODULE_DISPLAY_NAMES = {
+    "gtocore": "GTOCore",
+    "gtodyssey": "GTOdyssey",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -104,6 +109,76 @@ def read_pack_mcmeta(resourcepack_root: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_sync_manifest(repo_root: Path) -> dict[str, Any] | None:
+    manifest_path = repo_root / DEFAULT_MANIFEST_PATH
+    if not manifest_path.exists():
+        return None
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def extract_module_key(remote_name: str) -> str | None:
+    normalized = str(remote_name).replace("\\", "/").strip()
+    if "/" not in normalized:
+        return None
+    module_name = normalized.split("/", 1)[0].lower()
+    return module_name if module_name in MODULE_DISPLAY_NAMES else None
+
+
+def format_progress_percentage(emitted_entries: int, total_entries: int | None) -> str:
+    safe_total = int(total_entries) if isinstance(total_entries, int) and total_entries > 0 else 0
+    if safe_total <= 0:
+        return "0.0%"
+    return f"{(float(emitted_entries) / float(safe_total)) * 100:.1f}%"
+
+
+def build_progress_suffix(file_entries: list[dict[str, Any]]) -> str:
+    segments: list[str] = []
+    for module_key in MODULE_DISPLAY_NAMES:
+        module_entries = [
+            entry
+            for entry in file_entries
+            if extract_module_key(str(entry.get("remote_name", ""))) == module_key
+        ]
+        if not module_entries:
+            continue
+        emitted_total = 0
+        declared_total = 0
+        for entry in module_entries:
+            stats = entry.get("stats")
+            emitted_total += int(stats.get("emitted_entries", 0)) if isinstance(stats, dict) else 0
+            declared_total += int(entry.get("total", 0)) if isinstance(entry.get("total"), int) else 0
+        segments.append(f"{MODULE_DISPLAY_NAMES[module_key]} {format_progress_percentage(emitted_total, declared_total)}")
+    return " | ".join(segments)
+
+
+def build_combined_pack_description(repo_root: Path, locales: Iterable[str]) -> str:
+    base_description = f"GTO translations resource pack ({DEFAULT_COMBINED_LABEL})"
+    manifest = load_sync_manifest(repo_root)
+    if manifest is None:
+        return base_description
+
+    locale_set = set(locales)
+    matching_entries: list[dict[str, Any]] = []
+    for entry in manifest.get("files", []):
+        if not isinstance(entry, dict):
+            continue
+        output_path = entry.get("output_path")
+        if not isinstance(output_path, str) or not output_path:
+            continue
+        locale = Path(output_path).parts[0] if Path(output_path).parts else ""
+        if locale in locale_set:
+            matching_entries.append(entry)
+
+    progress_suffix = build_progress_suffix(matching_entries)
+    if not progress_suffix:
+        return base_description
+    return f"{base_description} | {progress_suffix}"
+
+
 def write_json_file(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -143,11 +218,11 @@ def write_artifact_metadata(resourcepack_root: Path, metadata: dict[str, Any] | 
     write_json_file(resourcepack_root / ARTIFACT_METADATA_FILE_NAME, metadata)
 
 
-def build_combined_pack_mcmeta(pack_format: int) -> dict:
+def build_combined_pack_mcmeta(pack_format: int, description: str) -> dict:
     return {
         "pack": {
             "pack_format": pack_format,
-            "description": f"GTO translations resource pack ({DEFAULT_COMBINED_LABEL})",
+            "description": description,
         }
     }
 
@@ -205,8 +280,9 @@ def stage_combined_artifact(
     if expected_pack_format is None:
         raise ValueError("Cannot build combined artifact without pack metadata.")
 
+    description = build_combined_pack_description(repo_root, locales)
     (target / "pack.mcmeta").write_text(
-        json.dumps(build_combined_pack_mcmeta(expected_pack_format), ensure_ascii=False, indent=2) + "\n",
+        json.dumps(build_combined_pack_mcmeta(expected_pack_format, description), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     write_artifact_metadata(target, artifact_metadata)
