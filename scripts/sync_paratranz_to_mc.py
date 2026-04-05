@@ -369,6 +369,7 @@ def normalize_translation_payload(
         elif parsed_stage < min_stage:
             stats["skipped_filtered_stage"] += 1
             continue
+        # Hidden entries intentionally export their original text so they can still render in-game.
         emitted_text = original if parsed_stage == -1 else translation
         if not emitted_text.strip():
             stats["skipped_empty_translation"] += 1
@@ -390,6 +391,7 @@ def normalize_translation_payload(
 def merge_translation_mappings(base_mapping: dict[str, str], extra_mapping: dict[str, str]) -> dict[str, str]:
     merged = dict(base_mapping)
     for key, value in extra_mapping.items():
+        # The extra en_us pass is additive; mismatched duplicates indicate the two passes disagree.
         existing = merged.get(key)
         if existing is not None and existing != value:
             raise ValueError(f"Conflicting translations while merging key: {key}")
@@ -434,6 +436,7 @@ def collect_managed_output_paths(repo_root: Path, configured_locales: list[str])
     for locale in configured_locales:
         normalized_locale = str(locale)
         resourcepack_root = repo_root / normalized_locale / "resourcepacks" / build_resourcepack_name(normalized_locale)
+        # Only paths the sync owns are eligible for cleanup; extra files in locale directories are left alone.
         managed_paths.add((resourcepack_root / "pack.mcmeta").resolve(strict=False))
         for path_segments in MODULE_OUTPUT_PATHS.values():
             lang_file = resourcepack_root / Path(*path_segments) / f"{normalized_locale}.json"
@@ -577,6 +580,7 @@ def sync_projects(
                 allowed_stages=effective_allowed_stages,
             )
             if project_locale == EN_US_LOCALE:
+                # en_us keeps the normal export and then layers in human-modified stage=1 strings.
                 manual_stage_one_mapping, manual_stage_one_stats = en_us_stage_one.collect_manual_stage_one_translations(
                     client,
                     project_id,
@@ -624,6 +628,7 @@ def sync_projects(
             pack_mcmeta_path = build_pack_mcmeta_path(output_dir, locale)
             keep_paths.add(pack_mcmeta_path)
             manifest["generated_paths"].append(str(pack_mcmeta_path.relative_to(output_dir).as_posix()))
+            # Surface per-module completion in the pack description so the player can see progress in-game.
             write_json_file(
                 pack_mcmeta_path,
                 {

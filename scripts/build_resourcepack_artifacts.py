@@ -147,6 +147,7 @@ def build_progress_suffix(file_entries: list[dict[str, Any]]) -> str:
             continue
         emitted_total = 0
         declared_total = 0
+        # Combined artifacts report aggregate progress across every included locale for each module.
         for entry in module_entries:
             stats = entry.get("stats")
             emitted_total += int(stats.get("emitted_entries", 0)) if isinstance(stats, dict) else 0
@@ -275,6 +276,7 @@ def stage_combined_artifact(
         elif pack_format != expected_pack_format:
             raise ValueError(f"pack_format mismatch for locale '{locale}'")
 
+        # Each locale pack already has the right assets layout, so the combined pack is just a tree merge.
         copy_tree_contents(source, target)
 
     if expected_pack_format is None:

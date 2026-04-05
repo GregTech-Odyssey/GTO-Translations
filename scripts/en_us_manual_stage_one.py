@@ -88,6 +88,7 @@ def get_latest_translation_event(item: dict[str, Any]) -> dict[str, Any] | None:
     latest_marker: tuple[datetime, int] | None = None
     event_index = 0
 
+    # We compare both imported and manual history so "current translation came from a human" is based on the latest change.
     for history_field in ("importHistory", "history"):
         history = item.get(history_field)
         if not isinstance(history, list):
@@ -155,6 +156,7 @@ def normalize_manual_stage_one_payload(payload: Any) -> tuple[dict[str, str], di
         except (TypeError, ValueError) as error:
             raise ValueError(f"Entry #{index} has an invalid stage.") from error
 
+        # This pass is intentionally narrow: only untranslated-review state entries that were last changed by a human.
         if parsed_stage != 1:
             stats["skipped_non_stage_one"] += 1
             continue
@@ -188,6 +190,7 @@ def fetch_detailed_strings(client: Any, project_id: int, file_id: int, page_size
     results: list[dict[str, Any]] = []
 
     while True:
+        # The detailed strings endpoint is only used by the en_us additive pass, so its pagination lives here.
         query = urlencode(
             {
                 "file": file_id,
