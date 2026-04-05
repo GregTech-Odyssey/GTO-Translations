@@ -6,9 +6,11 @@ import time
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import urlencode
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+import en_us_manual_stage_one as en_us_stage_one
 from project_config import (
     DEFAULT_CONFIG_PATH,
     build_release_line,
@@ -33,6 +35,7 @@ MODULE_OUTPUT_PATHS = {
     "gtocore": ("assets", "gtocore", "lang"),
     "gtodyssey": ("assets", "gto", "lang"),
 }
+EN_US_LOCALE = "en_us"
 
 
 class ParatranzClient:
@@ -83,6 +86,33 @@ class ParatranzClient:
 
     def get_file_translation(self, project_id: int, file_id: int) -> Any:
         return self._get_json(f"/projects/{project_id}/files/{file_id}/translation")
+
+    def get_detailed_strings(self, project_id: int, file_id: int, page_size: int = 1000) -> list[dict[str, Any]]:
+        page = 1
+        results: list[dict[str, Any]] = []
+
+        while True:
+            query = urlencode(
+                {
+                    "file": file_id,
+                    "page": page,
+                    "pageSize": page_size,
+                    "detailed": 1,
+                }
+            )
+            payload = self._get_json(f"/projects/{project_id}/strings?{query}")
+            batch = en_us_stage_one.extract_string_page_items(payload)
+            results.extend(batch)
+
+            if not en_us_stage_one.should_fetch_next_string_page(
+                payload,
+                batch_size=len(batch),
+                page=page,
+                page_size=page_size,
+            ):
+                return results
+
+            page += 1
 
 
 def parse_args() -> argparse.Namespace:
@@ -337,6 +367,32 @@ def normalize_translation_payload(
     return dict(sorted(mapping.items())), stats
 
 
+def merge_translation_mappings(base_mapping: dict[str, str], extra_mapping: dict[str, str]) -> dict[str, str]:
+    merged = dict(base_mapping)
+    for key, value in extra_mapping.items():
+        existing = merged.get(key)
+        if existing is not None and existing != value:
+            raise ValueError(f"Conflicting translations while merging key: {key}")
+        merged[key] = value
+    return dict(sorted(merged.items()))
+
+
+def merge_en_us_stats(
+    base_stats: dict[str, int],
+    manual_stage_one_stats: dict[str, int],
+    merged_mapping: dict[str, str],
+) -> dict[str, int]:
+    merged_stats = dict(base_stats)
+    merged_stats["emitted_entries"] = len(merged_mapping)
+    merged_stats["manual_stage_one_entries"] = manual_stage_one_stats["emitted_entries"]
+    merged_stats["manual_stage_one_total_entries"] = manual_stage_one_stats["total_entries"]
+    merged_stats["manual_stage_one_skipped_empty_translation"] = manual_stage_one_stats["skipped_empty_translation"]
+    merged_stats["manual_stage_one_skipped_non_stage_one"] = manual_stage_one_stats["skipped_non_stage_one"]
+    merged_stats["manual_stage_one_skipped_non_human_modified"] = manual_stage_one_stats["skipped_non_human_modified"]
+    merged_stats["manual_stage_one_duplicate_keys"] = manual_stage_one_stats["duplicate_keys"]
+    return merged_stats
+
+
 def write_json_file(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=isinstance(payload, dict))
@@ -471,6 +527,8 @@ def sync_projects(
     for project_id in project_ids:
         project = client.get_project(project_id)
         files = client.get_files(project_id)
+        project_entry_config = project_entry_by_id[project_id]
+        project_locale = str(project_entry_config["locale"])
         project_entry = {
             "project": {
                 "id": project.get("id"),
@@ -491,7 +549,6 @@ def sync_projects(
                 raise ValueError(f"Unexpected file metadata in project {project_id}")
 
             payload = client.get_file_translation(project_id, file_id)
-            project_entry_config = project_entry_by_id[project_id]
             effective_min_stage = min_stage_override
             effective_allowed_stages = None
             if effective_min_stage is None:
@@ -505,6 +562,14 @@ def sync_projects(
                 min_stage=effective_min_stage if effective_min_stage is not None else 1,
                 allowed_stages=effective_allowed_stages,
             )
+            if project_locale == EN_US_LOCALE:
+                manual_stage_one_mapping, manual_stage_one_stats = en_us_stage_one.collect_manual_stage_one_translations(
+                    client,
+                    project_id,
+                    file_id,
+                )
+                mapping = merge_translation_mappings(mapping, manual_stage_one_mapping)
+                stats = merge_en_us_stats(stats, manual_stage_one_stats, mapping)
             output_path = build_output_path(output_dir, remote_name)
             keep_paths.add(output_path)
             pack_locales.add(str(output_path.relative_to(output_dir).parts[0]))

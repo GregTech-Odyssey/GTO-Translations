@@ -10,11 +10,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 import project_config as project_config_module
+import en_us_manual_stage_one as en_us_stage_one_module
 import sync_paratranz_to_mc as sync_module
 
 
 class FakeClient:
     def __init__(self) -> None:
+        self.translation_calls: list[tuple[int, int]] = []
+        self.detailed_string_calls: list[tuple[int, int]] = []
         self.projects = {
             16320: {
                 "id": 16320,
@@ -101,6 +104,91 @@ class FakeClient:
                 {"key": "key.jp.questioned", "translation": "Questioned", "stage": 2},
             ],
         }
+        self.detailed_strings = {
+            (16320, 10): [
+                {
+                    "key": "key.a",
+                    "translation": "Alpha",
+                    "stage": 1,
+                    "history": [
+                        {
+                            "field": "translation",
+                            "operation": "translate",
+                            "createdAt": "2026-04-02T00:00:01Z",
+                        }
+                    ],
+                },
+                {
+                    "key": "key.b",
+                    "translation": "",
+                    "stage": 1,
+                    "history": [
+                        {
+                            "field": "translation",
+                            "operation": "translate",
+                            "createdAt": "2026-04-02T00:00:02Z",
+                        }
+                    ],
+                },
+                {
+                    "key": "key.import.only",
+                    "translation": "Imported Only",
+                    "stage": 1,
+                    "importHistory": [
+                        {
+                            "field": "translation",
+                            "operation": "import",
+                            "createdAt": "2026-04-02T00:00:03Z",
+                        }
+                    ],
+                },
+                {
+                    "key": "key.reimported",
+                    "translation": "Reimported",
+                    "stage": 1,
+                    "history": [
+                        {
+                            "field": "translation",
+                            "operation": "edit",
+                            "createdAt": "2026-04-02T00:00:04Z",
+                        }
+                    ],
+                    "importHistory": [
+                        {
+                            "field": "translation",
+                            "operation": "import",
+                            "createdAt": "2026-04-02T00:00:05Z",
+                        }
+                    ],
+                },
+                {
+                    "key": "key.reviewed.stage5",
+                    "translation": "Reviewed Stage Five",
+                    "stage": 5,
+                    "history": [
+                        {
+                            "field": "translation",
+                            "operation": "translate",
+                            "createdAt": "2026-04-02T00:00:06Z",
+                        }
+                    ],
+                },
+            ],
+            (16320, 11): [
+                {
+                    "key": "key.d",
+                    "translation": "Delta",
+                    "stage": 1,
+                    "history": [
+                        {
+                            "field": "translation",
+                            "operation": "edit",
+                            "createdAt": "2026-04-02T00:00:07Z",
+                        }
+                    ],
+                }
+            ],
+        }
 
     def get_project(self, project_id: int) -> dict:
         return self.projects[project_id]
@@ -109,7 +197,12 @@ class FakeClient:
         return self.files[project_id]
 
     def get_file_translation(self, project_id: int, file_id: int):
+        self.translation_calls.append((project_id, file_id))
         return self.translations[(project_id, file_id)]
+
+    def get_detailed_strings(self, project_id: int, file_id: int):
+        self.detailed_string_calls.append((project_id, file_id))
+        return self.detailed_strings[(project_id, file_id)]
 
 
 class NormalizeTranslationPayloadTests(unittest.TestCase):
@@ -199,6 +292,113 @@ class NormalizeTranslationPayloadTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             sync_module.normalize_translation_payload(payload, min_stage=1)
+
+
+class EnUsManualStageOneTests(unittest.TestCase):
+    def test_collects_only_human_modified_stage_one_translations(self) -> None:
+        payload = [
+            {
+                "key": "item.manual",
+                "translation": "Manual",
+                "stage": 1,
+                "history": [
+                    {
+                        "field": "translation",
+                        "operation": "translate",
+                        "createdAt": "2026-04-02T00:00:01Z",
+                    }
+                ],
+            },
+            {
+                "key": "item.import.only",
+                "translation": "Imported",
+                "stage": 1,
+                "importHistory": [
+                    {
+                        "field": "translation",
+                        "operation": "import",
+                        "createdAt": "2026-04-02T00:00:02Z",
+                    }
+                ],
+            },
+            {
+                "key": "item.reimported",
+                "translation": "Reimported",
+                "stage": 1,
+                "history": [
+                    {
+                        "field": "translation",
+                        "operation": "edit",
+                        "createdAt": "2026-04-02T00:00:03Z",
+                    }
+                ],
+                "importHistory": [
+                    {
+                        "field": "translation",
+                        "operation": "import",
+                        "createdAt": "2026-04-02T00:00:04Z",
+                    }
+                ],
+            },
+            {
+                "key": "item.reviewed",
+                "translation": "Reviewed",
+                "stage": 5,
+                "history": [
+                    {
+                        "field": "translation",
+                        "operation": "translate",
+                        "createdAt": "2026-04-02T00:00:05Z",
+                    }
+                ],
+            },
+            {
+                "key": "item.empty",
+                "translation": "",
+                "stage": 1,
+                "history": [
+                    {
+                        "field": "translation",
+                        "operation": "translate",
+                        "createdAt": "2026-04-02T00:00:06Z",
+                    }
+                ],
+            },
+        ]
+
+        mapping, stats = en_us_stage_one_module.normalize_manual_stage_one_payload(payload)
+
+        self.assertEqual(
+            mapping,
+            {
+                "item.manual": "Manual",
+            },
+        )
+        self.assertEqual(stats["total_entries"], 5)
+        self.assertEqual(stats["emitted_entries"], 1)
+        self.assertEqual(stats["skipped_non_stage_one"], 1)
+        self.assertEqual(stats["skipped_empty_translation"], 1)
+        self.assertEqual(stats["skipped_non_human_modified"], 2)
+
+    def test_merge_preserves_base_entries_and_adds_manual_stage_one_entries(self) -> None:
+        merged = sync_module.merge_translation_mappings(
+            {
+                "key.hidden": "Hidden Original",
+                "key.reviewed": "Reviewed",
+            },
+            {
+                "key.manual": "Manual",
+            },
+        )
+
+        self.assertEqual(
+            merged,
+            {
+                "key.hidden": "Hidden Original",
+                "key.manual": "Manual",
+                "key.reviewed": "Reviewed",
+            },
+        )
 
 
 class ResolveReleaseLineTests(unittest.TestCase):
@@ -350,6 +550,8 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertTrue(core_path.exists())
             self.assertTrue(odyssey_path.exists())
             self.assertTrue(pack_meta_path.exists())
+            self.assertEqual(client.translation_calls, [(16320, 10), (16320, 11)])
+            self.assertEqual(client.detailed_string_calls, [(16320, 10), (16320, 11)])
             self.assertEqual(
                 json.loads(pack_meta_path.read_text(encoding="utf-8"))["pack"]["description"],
                 "GTO translations resource pack (en_us)",
@@ -358,13 +560,16 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(core_path.read_text(encoding="utf-8")),
                 {
+                    "key.a": "Alpha",
                     "key.hidden": "Hidden Original",
                     "key.c": "Gamma",
                 },
             )
             self.assertEqual(
                 json.loads(odyssey_path.read_text(encoding="utf-8")),
-                {},
+                {
+                    "key.d": "Delta",
+                },
             )
 
             written_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -375,7 +580,8 @@ class SyncProjectsTests(unittest.TestCase):
             updated_config = project_config_module.load_project_config(config_path)
             self.assertEqual(project_config_module.get_current_version(updated_config), "0.5.4")
             self.assertEqual(written_manifest["files"][0]["remote_name"], "GTOCore/en_us.json")
-            self.assertEqual(written_manifest["files"][0]["stats"]["emitted_entries"], 2)
+            self.assertEqual(written_manifest["files"][0]["stats"]["emitted_entries"], 3)
+            self.assertEqual(written_manifest["files"][0]["stats"]["manual_stage_one_entries"], 1)
             self.assertEqual(written_manifest["files"][0]["allowed_stages"], [-1, 5, 9])
             self.assertEqual(
                 written_manifest["files"][0]["output_path"],
@@ -432,6 +638,8 @@ class SyncProjectsTests(unittest.TestCase):
                     "key.jp.translated": "Translated",
                 },
             )
+            self.assertEqual(client.translation_calls, [(18185, 20)])
+            self.assertEqual(client.detailed_string_calls, [])
             self.assertEqual(manifest["files"][0]["allowed_stages"], [-1, 1, 3, 5, 9])
         finally:
             shutil.rmtree(temp_root, ignore_errors=True)
