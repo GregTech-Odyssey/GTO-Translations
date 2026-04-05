@@ -67,7 +67,7 @@ jobs:
           cat <<'EOF' > dist/release/RELEASE_NOTES.md
           Stable translation release promoted manually from the sync pipeline.
 
-          Put the downloaded zip into `config/openloader` without extracting it, and keep it at the top of the list.
+          Put the downloaded zip into `config/openloader/resources` without extracting it, and keep it at the top of the list.
           
           - Release line: ${{ steps.release.outputs.release_line }}
           - Artifact version: ${{ steps.release.outputs.tag_name }}
