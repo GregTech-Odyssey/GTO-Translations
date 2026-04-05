@@ -6,7 +6,6 @@ import time
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
-from urllib.parse import urlencode
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -86,33 +85,6 @@ class ParatranzClient:
 
     def get_file_translation(self, project_id: int, file_id: int) -> Any:
         return self._get_json(f"/projects/{project_id}/files/{file_id}/translation")
-
-    def get_detailed_strings(self, project_id: int, file_id: int, page_size: int = 1000) -> list[dict[str, Any]]:
-        page = 1
-        results: list[dict[str, Any]] = []
-
-        while True:
-            query = urlencode(
-                {
-                    "file": file_id,
-                    "page": page,
-                    "pageSize": page_size,
-                    "detailed": 1,
-                }
-            )
-            payload = self._get_json(f"/projects/{project_id}/strings?{query}")
-            batch = en_us_stage_one.extract_string_page_items(payload)
-            results.extend(batch)
-
-            if not en_us_stage_one.should_fetch_next_string_page(
-                payload,
-                batch_size=len(batch),
-                page=page,
-                page_size=page_size,
-            ):
-                return results
-
-            page += 1
 
 
 def parse_args() -> argparse.Namespace:
@@ -409,12 +381,25 @@ def load_existing_manifest(path: Path) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
+def collect_managed_output_paths(repo_root: Path, configured_locales: list[str]) -> set[Path]:
+    managed_paths: set[Path] = set()
+    for locale in configured_locales:
+        normalized_locale = str(locale)
+        resourcepack_root = repo_root / normalized_locale / "resourcepacks" / build_resourcepack_name(normalized_locale)
+        managed_paths.add((resourcepack_root / "pack.mcmeta").resolve(strict=False))
+        for path_segments in MODULE_OUTPUT_PATHS.values():
+            lang_file = resourcepack_root / Path(*path_segments) / f"{normalized_locale}.json"
+            managed_paths.add(lang_file.resolve(strict=False))
+    return managed_paths
+
+
 def collect_previous_generated_paths(
     repo_root: Path,
     manifest_payload: dict[str, Any] | None,
     configured_locales: list[str],
 ) -> set[Path]:
     results: set[Path] = set()
+    results.update(collect_managed_output_paths(repo_root, configured_locales))
     if not manifest_payload:
         return results
 
@@ -429,26 +414,6 @@ def collect_previous_generated_paths(
     for extra_path in manifest_payload.get("generated_paths", []):
         if isinstance(extra_path, str) and extra_path:
             results.add((repo_root / PurePosixPath(extra_path)).resolve(strict=False))
-
-    legacy_dir = repo_root / "mc-lang"
-    for file_path in legacy_dir.rglob("*.json") if legacy_dir.exists() else []:
-        if file_path.name == "manifest.json":
-            continue
-        results.add(file_path.resolve(strict=False))
-
-    locale_candidates: set[str] = set(configured_locales)
-    locale_candidates.update(locale.upper() for locale in configured_locales)
-    locale_candidates.update(
-        "_".join(part.upper() if index == 1 else part for index, part in enumerate(locale.split("_")))
-        for locale in configured_locales
-    )
-    for locale_dir in sorted(locale_candidates):
-        locale_root = repo_root / locale_dir
-        if not locale_root.exists():
-            continue
-        for file_path in locale_root.rglob("*"):
-            if file_path.is_file():
-                results.add(file_path.resolve(strict=False))
 
     return results
 

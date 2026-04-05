@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlencode
 
 
 HUMAN_TRANSLATION_OPERATIONS = {"translate", "edit", "rollback", "reset"}
@@ -178,5 +179,33 @@ def normalize_manual_stage_one_payload(payload: Any) -> tuple[dict[str, str], di
 
 
 def collect_manual_stage_one_translations(client: Any, project_id: int, file_id: int) -> tuple[dict[str, str], dict[str, int]]:
-    payload = client.get_detailed_strings(project_id, file_id)
+    payload = fetch_detailed_strings(client, project_id, file_id)
     return normalize_manual_stage_one_payload(payload)
+
+
+def fetch_detailed_strings(client: Any, project_id: int, file_id: int, page_size: int = 1000) -> list[dict[str, Any]]:
+    page = 1
+    results: list[dict[str, Any]] = []
+
+    while True:
+        query = urlencode(
+            {
+                "file": file_id,
+                "page": page,
+                "pageSize": page_size,
+                "detailed": 1,
+            }
+        )
+        payload = client._get_json(f"/projects/{project_id}/strings?{query}")
+        batch = extract_string_page_items(payload)
+        results.extend(batch)
+
+        if not should_fetch_next_string_page(
+            payload,
+            batch_size=len(batch),
+            page=page,
+            page_size=page_size,
+        ):
+            return results
+
+        page += 1

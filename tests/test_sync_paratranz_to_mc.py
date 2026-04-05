@@ -4,6 +4,7 @@ import sys
 import unittest
 import uuid
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -193,16 +194,27 @@ class FakeClient:
     def get_project(self, project_id: int) -> dict:
         return self.projects[project_id]
 
+    def _get_json(self, path: str):
+        parsed = urlparse(path)
+        if parsed.path.startswith("/projects/") and parsed.path.endswith("/strings"):
+            project_id = int(parsed.path.split("/")[2])
+            query = parse_qs(parsed.query)
+            file_id = int(query["file"][0])
+            self.detailed_string_calls.append((project_id, file_id))
+            return {
+                "results": self.detailed_strings[(project_id, file_id)],
+                "page": int(query.get("page", ["1"])[0]),
+                "pageSize": int(query.get("pageSize", ["1000"])[0]),
+                "pageCount": 1,
+            }
+        raise ValueError(f"Unexpected _get_json path: {path}")
+
     def get_files(self, project_id: int) -> list[dict]:
         return self.files[project_id]
 
     def get_file_translation(self, project_id: int, file_id: int):
         self.translation_calls.append((project_id, file_id))
         return self.translations[(project_id, file_id)]
-
-    def get_detailed_strings(self, project_id: int, file_id: int):
-        self.detailed_string_calls.append((project_id, file_id))
-        return self.detailed_strings[(project_id, file_id)]
 
 
 class NormalizeTranslationPayloadTests(unittest.TestCase):
@@ -486,9 +498,9 @@ class SyncProjectsTests(unittest.TestCase):
         try:
             temp_root.mkdir(parents=True, exist_ok=False)
             output_dir = temp_root
-            stale_file = output_dir / "en_us" / "stale.json"
-            stale_file.parent.mkdir(parents=True, exist_ok=True)
-            stale_file.write_text("{}", encoding="utf-8")
+            untouched_file = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "pack.png"
+            untouched_file.parent.mkdir(parents=True, exist_ok=True)
+            untouched_file.write_text("not generated", encoding="utf-8")
 
             config_path = temp_root / ".paratranz-sync.yml"
             config_path.write_text(
@@ -520,11 +532,7 @@ class SyncProjectsTests(unittest.TestCase):
             manifest_path.write_text(
                 json.dumps(
                     {
-                        "files": [
-                            {
-                                "output_path": "en_us/stale.json",
-                            }
-                        ]
+                        "files": []
                     },
                     ensure_ascii=False,
                     indent=2,
@@ -546,7 +554,7 @@ class SyncProjectsTests(unittest.TestCase):
             odyssey_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "assets" / "gto" / "lang" / "en_us.json"
             pack_meta_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "pack.mcmeta"
 
-            self.assertFalse(stale_file.exists())
+            self.assertTrue(untouched_file.exists())
             self.assertTrue(core_path.exists())
             self.assertTrue(odyssey_path.exists())
             self.assertTrue(pack_meta_path.exists())
@@ -591,6 +599,64 @@ class SyncProjectsTests(unittest.TestCase):
                 "en_us/resourcepacks/gto-lang-en_us/pack.mcmeta",
                 written_manifest["generated_paths"],
             )
+        finally:
+            shutil.rmtree(temp_root, ignore_errors=True)
+
+    def test_sync_projects_cleans_known_generated_paths_without_manifest_and_preserves_extra_files(self) -> None:
+        client = FakeClient()
+        client.files[16320] = [client.files[16320][0]]
+        temp_root = REPO_ROOT / f".tmp-sync-managed-cleanup-test-{uuid.uuid4().hex}"
+        try:
+            temp_root.mkdir(parents=True, exist_ok=False)
+            stale_generated_file = (
+                temp_root
+                / "en_us"
+                / "resourcepacks"
+                / "gto-lang-en_us"
+                / "assets"
+                / "gto"
+                / "lang"
+                / "en_us.json"
+            )
+            untouched_file = temp_root / "en_us" / "resourcepacks" / "gto-lang-en_us" / "pack.png"
+            stale_generated_file.parent.mkdir(parents=True, exist_ok=True)
+            stale_generated_file.write_text('{"old":"value"}', encoding="utf-8")
+            untouched_file.parent.mkdir(parents=True, exist_ok=True)
+            untouched_file.write_text("not generated", encoding="utf-8")
+
+            config_path = temp_root / ".paratranz-sync.yml"
+            config_path.write_text(
+                "\n".join(
+                    [
+                        "release:",
+                        "  product: gto",
+                        "  primary_project_id: 16320",
+                        "  current_version: 0.5.3",
+                        "projects:",
+                        "  - locale: en_us",
+                        "    project_id: 16320",
+                        "    allowed_stages: [-1, 5, 9]",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            config = project_config_module.load_project_config(config_path)
+            manifest_path = temp_root / ".paratranz-sync" / "manifest.json"
+
+            sync_module.sync_projects(
+                client=client,
+                release_product="gto",
+                project_entries=project_config_module.get_project_entries(config),
+                config_path=config_path,
+                config=config,
+                output_dir=temp_root,
+                manifest_path=manifest_path,
+                primary_project_id=16320,
+            )
+
+            self.assertFalse(stale_generated_file.exists())
+            self.assertTrue(untouched_file.exists())
         finally:
             shutil.rmtree(temp_root, ignore_errors=True)
 
