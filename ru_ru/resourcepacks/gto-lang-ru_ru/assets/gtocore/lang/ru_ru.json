@@ -5016,6 +5016,7 @@
   "gtocore.machine.processing_array.tooltip.1": "Параллельность определяется количеством размещённых в люке машин",
   "gtocore.machine.processing_plant.mismatched": "Уровень рецепта не соответствует уровню одноблочного механизма",
   "gtocore.machine.programmablec_hatch.tooltip": "Позволяет изменять интегральную схему при помощи машины виртуальной поставки предметов",
+  "gtocore.machine.provide_to_multiblock_part": "Запитывание входных энергетических разъёмов мультиблоков",
   "gtocore.machine.radiation_hatch.inhibition_dose": "Величина подавления: %s Зв",
   "gtocore.machine.radiation_hatch.time": "Время: %s / %s тики",
   "gtocore.machine.recipe.run": "При выполнении рецепта %s: ",

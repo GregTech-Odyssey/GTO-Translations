@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gtocore/lang/ru_ru.json",
+      "remote_name": "GTOCore/ru_ru.json",
+      "stats": {
+        "duplicate_keys": 0,
+        "emitted_entries": 7857,
+        "skipped_empty_translation": 2,
+        "skipped_filtered_stage": 429,
+        "total_entries": 8288
+      },
+      "total": 8288
+    },
+    {
+      "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gto/lang/ru_ru.json",
+      "remote_name": "GTOdyssey/ru_ru.json",
+      "stats": {
+        "duplicate_keys": 0,
+        "emitted_entries": 2356,
+        "skipped_empty_translation": 0,
+        "skipped_filtered_stage": 2782,
+        "total_entries": 5138
+      },
+      "total": 5138
+    }
+  ],
+  "locale": "ru_ru",
+  "schema_version": 1
+}
