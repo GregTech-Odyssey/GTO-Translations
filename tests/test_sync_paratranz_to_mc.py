@@ -562,7 +562,7 @@ class SyncProjectsTests(unittest.TestCase):
             self.assertEqual(client.detailed_string_calls, [(16320, 10), (16320, 11)])
             self.assertEqual(
                 json.loads(pack_meta_path.read_text(encoding="utf-8"))["pack"]["description"],
-                "GTO translations resource pack (en_us) | GTOCore 75.0% | GTOdyssey 100.0%",
+                "GTO translations (en_us) | GTOCore 75.0% | GTOdyssey 100.0%",
             )
 
             self.assertEqual(

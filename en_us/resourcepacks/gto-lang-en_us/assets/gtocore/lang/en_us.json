@@ -1499,7 +1499,7 @@
   "gtocore.lang.template.allow_parallel.1237940461": "Parallel Control Hatches: %s",
   "gtocore.lang.template.allow_parallel_number.-1185056654": "Parallels: %s",
   "gtocore.lang.template.empty_with_bar.1262": "%s",
-  "gtocore.lang.template.energy_cost_multiply.873465973": "Energy Cost Multiplier: %s",
+  "gtocore.lang.template.energy_cost_multiply.873465973": "Energy Multiplier: %s",
   "gtocore.lang.template.miraculous_tools.1335374071": "Wondrous Gadget: %s",
   "gtocore.lang.template.not_allow_shared.2139602255": "Share-able: %s",
   "gtocore.lang.template.perfect_overclock.-2096771091": "Perfect Overclock: %s",

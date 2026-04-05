@@ -258,7 +258,7 @@ def build_pack_mcmeta(label: str) -> dict[str, Any]:
     return {
         "pack": {
             "pack_format": 15,
-            "description": f"GTO translations resource pack ({label})",
+            "description": f"GTO translations ({label})",
         }
     }
 
@@ -300,7 +300,7 @@ def build_progress_suffix(file_entries: list[dict[str, Any]]) -> str:
 
 
 def build_locale_pack_description(label: str, file_entries: list[dict[str, Any]]) -> str:
-    base_description = f"GTO translations resource pack ({label})"
+    base_description = f"GTO translations ({label})"
     progress_suffix = build_progress_suffix(file_entries)
     if not progress_suffix:
         return base_description

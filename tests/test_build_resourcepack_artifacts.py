@@ -61,7 +61,7 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
                 {
                     "pack": {
                         "pack_format": 15,
-                        "description": f"GTO translations resource pack ({locale}) | seeded",
+                        "description": f"GTO translations ({locale}) | seeded",
                     }
                 },
             )
@@ -128,7 +128,7 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
         self.assertTrue((combined_pack / "pack.mcmeta").exists())
         self.assertEqual(
             json.loads((combined_pack / "pack.mcmeta").read_text(encoding="utf-8"))["pack"]["description"],
-            "GTO translations resource pack (all-locales) | GTOCore 57.5% | GTOdyssey 37.5%",
+            "GTO translations (all-locales) | GTOCore 57.5% | GTOdyssey 37.5%",
         )
         self.assertTrue((combined_pack / "assets" / "gtocore" / "lang" / "en_us.json").exists())
         self.assertTrue((combined_pack / "assets" / "gtocore" / "lang" / "ru_ru.json").exists())

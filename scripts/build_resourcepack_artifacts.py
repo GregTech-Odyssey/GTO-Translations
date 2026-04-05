@@ -156,7 +156,7 @@ def build_progress_suffix(file_entries: list[dict[str, Any]]) -> str:
 
 
 def build_combined_pack_description(repo_root: Path, locales: Iterable[str]) -> str:
-    base_description = f"GTO translations resource pack ({DEFAULT_COMBINED_LABEL})"
+    base_description = f"GTO translations ({DEFAULT_COMBINED_LABEL})"
     manifest = load_sync_manifest(repo_root)
     if manifest is None:
         return base_description
