@@ -10,7 +10,7 @@ from project_config import DEFAULT_CONFIG_PATH, get_configured_locales, load_pro
 RESOURCEPACK_NAME_PREFIX = "gto-lang"
 ARTIFACT_METADATA_FILE_NAME = "gto-artifact-metadata.json"
 DEFAULT_COMBINED_LABEL = "all-locales"
-DEFAULT_MANIFEST_PATH = ".paratranz-sync/manifest.json"
+PROGRESS_METADATA_FILE_NAME = ".gto-progress.json"
 MODULE_DISPLAY_NAMES = {
     "gtocore": "GTOCore",
     "gtodyssey": "GTOdyssey",
@@ -109,17 +109,6 @@ def read_pack_mcmeta(resourcepack_root: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_sync_manifest(repo_root: Path) -> dict[str, Any] | None:
-    manifest_path = repo_root / DEFAULT_MANIFEST_PATH
-    if not manifest_path.exists():
-        return None
-    try:
-        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
-    return payload if isinstance(payload, dict) else None
-
-
 def extract_module_key(remote_name: str) -> str | None:
     normalized = str(remote_name).replace("\\", "/").strip()
     if "/" not in normalized:
@@ -156,23 +145,28 @@ def build_progress_suffix(file_entries: list[dict[str, Any]]) -> str:
     return " | ".join(segments)
 
 
+def load_locale_progress_metadata(repo_root: Path, locale: str) -> list[dict[str, Any]]:
+    # Combined packaging may run in a separate job, so it reads committed per-locale progress instead of the ignored manifest.
+    metadata_path = repo_root / locale / PROGRESS_METADATA_FILE_NAME
+    if not metadata_path.exists():
+        return []
+    try:
+        payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(payload, dict):
+        return []
+    files = payload.get("files")
+    if not isinstance(files, list):
+        return []
+    return [entry for entry in files if isinstance(entry, dict)]
+
+
 def build_combined_pack_description(repo_root: Path, locales: Iterable[str]) -> str:
     base_description = f"GTO translations ({DEFAULT_COMBINED_LABEL})"
-    manifest = load_sync_manifest(repo_root)
-    if manifest is None:
-        return base_description
-
-    locale_set = set(locales)
     matching_entries: list[dict[str, Any]] = []
-    for entry in manifest.get("files", []):
-        if not isinstance(entry, dict):
-            continue
-        output_path = entry.get("output_path")
-        if not isinstance(output_path, str) or not output_path:
-            continue
-        locale = Path(output_path).parts[0] if Path(output_path).parts else ""
-        if locale in locale_set:
-            matching_entries.append(entry)
+    for locale in locales:
+        matching_entries.extend(load_locale_progress_metadata(repo_root, locale))
 
     progress_suffix = build_progress_suffix(matching_entries)
     if not progress_suffix:

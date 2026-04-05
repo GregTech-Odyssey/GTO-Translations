@@ -29,6 +29,7 @@ DEFAULT_MANIFEST_PATH = ".paratranz-sync/manifest.json"
 DEFAULT_TIMEOUT = 30
 MAX_RETRIES = 3
 RESOURCEPACK_NAME_PREFIX = "gto-lang"
+PROGRESS_METADATA_FILE_NAME = ".gto-progress.json"
 DEFAULT_TIMEZONE = timezone(timedelta(hours=8), name="UTC+08:00")
 MODULE_OUTPUT_PATHS = {
     "gtocore": ("assets", "gtocore", "lang"),
@@ -250,6 +251,10 @@ def build_pack_mcmeta_path(output_dir: Path, locale: str) -> Path:
     return output_dir / locale / "resourcepacks" / build_resourcepack_name(locale) / "pack.mcmeta"
 
 
+def build_progress_metadata_path(output_dir: Path, locale: str) -> Path:
+    return output_dir / locale / PROGRESS_METADATA_FILE_NAME
+
+
 def build_resourcepack_name(locale: str) -> str:
     return f"{RESOURCEPACK_NAME_PREFIX}-{locale}"
 
@@ -438,10 +443,27 @@ def collect_managed_output_paths(repo_root: Path, configured_locales: list[str])
         resourcepack_root = repo_root / normalized_locale / "resourcepacks" / build_resourcepack_name(normalized_locale)
         # Only paths the sync owns are eligible for cleanup; extra files in locale directories are left alone.
         managed_paths.add((resourcepack_root / "pack.mcmeta").resolve(strict=False))
+        managed_paths.add(build_progress_metadata_path(repo_root, normalized_locale).resolve(strict=False))
         for path_segments in MODULE_OUTPUT_PATHS.values():
             lang_file = resourcepack_root / Path(*path_segments) / f"{normalized_locale}.json"
             managed_paths.add(lang_file.resolve(strict=False))
     return managed_paths
+
+
+def build_locale_progress_metadata(locale: str, file_entries: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "schema_version": 1,
+        "locale": locale,
+        "files": [
+            {
+                "remote_name": entry.get("remote_name"),
+                "output_path": entry.get("output_path"),
+                "total": entry.get("total"),
+                "stats": entry.get("stats"),
+            }
+            for entry in file_entries
+        ],
+    }
 
 
 def collect_previous_generated_paths(
@@ -626,8 +648,11 @@ def sync_projects(
 
         for locale in sorted(pack_locales):
             pack_mcmeta_path = build_pack_mcmeta_path(output_dir, locale)
+            progress_metadata_path = build_progress_metadata_path(output_dir, locale)
             keep_paths.add(pack_mcmeta_path)
+            keep_paths.add(progress_metadata_path)
             manifest["generated_paths"].append(str(pack_mcmeta_path.relative_to(output_dir).as_posix()))
+            manifest["generated_paths"].append(str(progress_metadata_path.relative_to(output_dir).as_posix()))
             # Surface per-module completion in the pack description so the player can see progress in-game.
             write_json_file(
                 pack_mcmeta_path,
@@ -637,6 +662,11 @@ def sync_projects(
                         "description": build_locale_pack_description(locale, locale_file_entries.get(locale, [])),
                     }
                 },
+            )
+            # Persist per-locale progress outside the ignored manifest so later packaging jobs can rebuild combined stats.
+            write_json_file(
+                progress_metadata_path,
+                build_locale_progress_metadata(locale, locale_file_entries.get(locale, [])),
             )
 
         write_json_file(manifest_path, manifest)

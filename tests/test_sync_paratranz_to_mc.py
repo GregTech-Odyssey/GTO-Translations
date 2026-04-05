@@ -553,16 +553,22 @@ class SyncProjectsTests(unittest.TestCase):
             core_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "assets" / "gtocore" / "lang" / "en_us.json"
             odyssey_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "assets" / "gto" / "lang" / "en_us.json"
             pack_meta_path = output_dir / "en_us" / "resourcepacks" / "gto-lang-en_us" / "pack.mcmeta"
+            progress_metadata_path = output_dir / "en_us" / sync_module.PROGRESS_METADATA_FILE_NAME
 
             self.assertTrue(untouched_file.exists())
             self.assertTrue(core_path.exists())
             self.assertTrue(odyssey_path.exists())
             self.assertTrue(pack_meta_path.exists())
+            self.assertTrue(progress_metadata_path.exists())
             self.assertEqual(client.translation_calls, [(16320, 10), (16320, 11)])
             self.assertEqual(client.detailed_string_calls, [(16320, 10), (16320, 11)])
             self.assertEqual(
                 json.loads(pack_meta_path.read_text(encoding="utf-8"))["pack"]["description"],
                 "GTO translations (en_us) | GTOCore 75.0% | GTOdyssey 100.0%",
+            )
+            self.assertEqual(
+                json.loads(progress_metadata_path.read_text(encoding="utf-8"))["files"][0]["remote_name"],
+                "GTOCore/en_us.json",
             )
 
             self.assertEqual(
@@ -597,6 +603,10 @@ class SyncProjectsTests(unittest.TestCase):
             )
             self.assertIn(
                 "en_us/resourcepacks/gto-lang-en_us/pack.mcmeta",
+                written_manifest["generated_paths"],
+            )
+            self.assertIn(
+                f"en_us/{sync_module.PROGRESS_METADATA_FILE_NAME}",
                 written_manifest["generated_paths"],
             )
         finally:
