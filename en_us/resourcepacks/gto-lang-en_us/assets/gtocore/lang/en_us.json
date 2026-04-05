@@ -1496,7 +1496,7 @@
   "gtocore.lang.supercomputing.26.-526220799": "Structure material requirements: Taranium-Enhanced Borosilicate Glass + Graviton Computer Casing + Anti Entropy Computer Condensation Matrix",
   "gtocore.lang.superconducting_magnetic_presser.4.2054820504": "\"Kono ude de, mirai o uchinuku\"",
   "gtocore.lang.template.allow_multi_recipe_parallel.1627326288": "Multi-Threading: %s",
-  "gtocore.lang.template.allow_parallel.1237940461": "Parallel Control Hatches: %s",
+  "gtocore.lang.template.allow_parallel.1237940461": "Parallel Control Hatch: %s",
   "gtocore.lang.template.allow_parallel_number.-1185056654": "Parallels: %s",
   "gtocore.lang.template.empty_with_bar.1262": "%s",
   "gtocore.lang.template.energy_cost_multiply.873465973": "Energy Multiplier: %s",

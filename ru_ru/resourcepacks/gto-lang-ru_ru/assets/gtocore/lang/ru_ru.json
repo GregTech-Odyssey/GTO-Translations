@@ -4708,7 +4708,7 @@
   "gtocore.machine.fission_reactor.heat": "Температура реактора: %s K",
   "gtocore.machine.forced_loaded": "Чанк, в котором находится машина, не загружен принудительно",
   "gtocore.machine.fuelcell_efficiency": "Множитель эффективности топлива: %s",
-  "gtocore.machine.generator_array.wireless": "Режим беспроводная энергосети:",
+  "gtocore.machine.generator_array.wireless": "Режим беспроводной энергосети:",
   "gtocore.machine.greenhouse.SkyLight": "Уровень освещённости: %s",
   "gtocore.machine.height": "Высота: %s",
   "gtocore.machine.highlight_module": "Подсветка позиции модуля",
