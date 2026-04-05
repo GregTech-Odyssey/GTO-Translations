@@ -22,37 +22,36 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
         self.temp_root = REPO_ROOT / f".tmp-artifact-test-{uuid.uuid4().hex}"
         self.output_dir = self.temp_root / "dist"
         self.temp_root.mkdir(parents=True, exist_ok=False)
-        write_json(
-            self.temp_root / ".paratranz-sync" / "manifest.json",
-            {
-                "files": [
-                    {
-                        "remote_name": "GTOCore/en_us.json",
-                        "output_path": "en_us/resourcepacks/gto-lang-en_us/assets/gtocore/lang/en_us.json",
-                        "total": 100,
-                        "stats": {"emitted_entries": 25},
-                    },
-                    {
-                        "remote_name": "GTOdyssey/en_us.json",
-                        "output_path": "en_us/resourcepacks/gto-lang-en_us/assets/gto/lang/en_us.json",
-                        "total": 40,
-                        "stats": {"emitted_entries": 10},
-                    },
-                    {
-                        "remote_name": "GTOCore/ru_ru.json",
-                        "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gtocore/lang/ru_ru.json",
-                        "total": 100,
-                        "stats": {"emitted_entries": 90},
-                    },
-                    {
-                        "remote_name": "GTOdyssey/ru_ru.json",
-                        "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gto/lang/ru_ru.json",
-                        "total": 40,
-                        "stats": {"emitted_entries": 20},
-                    },
-                ]
-            },
-        )
+        progress_entries = {
+            "en_us": [
+                {
+                    "remote_name": "GTOCore/en_us.json",
+                    "output_path": "en_us/resourcepacks/gto-lang-en_us/assets/gtocore/lang/en_us.json",
+                    "total": 100,
+                    "stats": {"emitted_entries": 25},
+                },
+                {
+                    "remote_name": "GTOdyssey/en_us.json",
+                    "output_path": "en_us/resourcepacks/gto-lang-en_us/assets/gto/lang/en_us.json",
+                    "total": 40,
+                    "stats": {"emitted_entries": 10},
+                },
+            ],
+            "ru_ru": [
+                {
+                    "remote_name": "GTOCore/ru_ru.json",
+                    "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gtocore/lang/ru_ru.json",
+                    "total": 100,
+                    "stats": {"emitted_entries": 90},
+                },
+                {
+                    "remote_name": "GTOdyssey/ru_ru.json",
+                    "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gto/lang/ru_ru.json",
+                    "total": 40,
+                    "stats": {"emitted_entries": 20},
+                },
+            ],
+        }
 
         for locale in ("en_us", "ru_ru"):
             base = self.temp_root / locale / "resourcepacks" / f"gto-lang-{locale}"
@@ -75,6 +74,14 @@ class BuildResourcepackArtifactsTests(unittest.TestCase):
                 base / "assets" / "gto" / "lang" / f"{locale}.json",
                 {
                     f"quest.{locale}": f"quest-{locale}",
+                },
+            )
+            write_json(
+                self.temp_root / locale / artifacts_module.PROGRESS_METADATA_FILE_NAME,
+                {
+                    "schema_version": 1,
+                    "locale": locale,
+                    "files": progress_entries[locale],
                 },
             )
 
