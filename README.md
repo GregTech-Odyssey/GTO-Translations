@@ -19,7 +19,7 @@ Latest snapshot builds can be downloaded from [GitHub Actions](https://github.co
 How to use the downloaded zip:
 
 1. Open the game folder.
-2. Go to `config/openloader`.
+2. Go to `config/openloader/resources`.
 3. Drag the downloaded zip into that folder directly. Do not unzip it.
 4. Make sure the pack stays at the top of the list. If it is not enabled yet, enable it first.
 
