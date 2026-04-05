@@ -19,7 +19,7 @@ Paratranz 项目中的翻译会定期同步到本仓库。
 下载后的 zip 使用方法：
 
 1. 打开游戏文件夹。
-2. 进入 `config/openloader`。
+2. 进入 `config/openloader/resources`。
 3. 将下载的 zip 直接拖进去，不需要解压。
 4. 确保该资源包位于列表最上方；如果尚未启用，请先启用。
 
