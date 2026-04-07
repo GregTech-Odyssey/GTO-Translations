@@ -1015,6 +1015,7 @@
   "gtocore.death.attack.machine_heat_wave": "We are sorry to inform you that employee %s died from a heat wave of %s %sK",
   "gtocore.death.attack.turbulence_of_another_star": "%s died in the turbulence of an alien planet, since a %s level planet requires %s tier organ modification",
   "gtocore.difficulty_config.name.fuelcell.chance_consume": "Membrane Damage Chance",
+  "gtocore.difficulty_config.name.gtceu.machine.multiblock.steam.large_circuit_assembler.engraving_needed_amount": "Circuits needed for engraving",
   "gtocore.difficulty_config.name.gtceu.machine.multiblock.steam.large_circuit_assembler.max_parallel": "Parallels",
   "gtocore.difficulty_config.name.gtocore.machine.large_steam_solar_boiler": "Steam Production per Collector Pipe Casing: %s/t",
   "gtocore.difficulty_config.name.gtocore.machine.multiblock.large_steam.max_parallels": "Max Parallel",
