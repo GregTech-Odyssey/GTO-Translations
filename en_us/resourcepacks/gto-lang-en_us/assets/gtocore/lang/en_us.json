@@ -1528,6 +1528,8 @@
   "gtocore.machine.large_steam_solar_boiler.heat_collector_pipe": "Amount of Collector Pipe Casings: %s",
   "gtocore.machine.large_steam_solar_boiler.size": "Size: %sx%s",
   "gtocore.machine.large_steam_solar_boiler.steam_production": "Steam Production: %s/s",
+  "gtocore.machine.mana_input": "Mana Input: %s",
+  "gtocore.machine.mana_output": "Mana Output: %s",
   "gtocore.machine.me_dual_hatch_stock.turns.0": "Auto-Pull Disabled",
   "gtocore.machine.me_dual_hatch_stock.turns.1": "Auto-Pull Fluid/Item",
   "gtocore.machine.me_io_storage_access_hatch.tooltip.0": "Integrated IO Port",
