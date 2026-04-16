@@ -2006,6 +2006,7 @@
   "gtceu.microgravity_nanofabrication": "Наноточная обработка в условиях микрогравитации",
   "gtceu.miner_module": "Космическая добыча",
   "gtceu.molecular_transformer": "Молекулярное преобразование",
+  "gtceu.multiblock.batch_parallel_multiplier": "(Пакетная обработка/компенсация разгона %s)",
   "gtceu.multiblock.universal.muffler_insufficient": "Уровень люка глушителя недостаточен",
   "gtceu.nanites_integrated_processing_center": "Обработка нано-роем",
   "gtceu.nano_forge": "Нано-кузня",
