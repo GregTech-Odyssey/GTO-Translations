@@ -5,15 +5,15 @@
       "remote_name": "GTOCore/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 2463,
+        "emitted_entries": 2480,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 751,
+        "manual_stage_one_entries": 748,
         "manual_stage_one_skipped_empty_translation": 2,
-        "manual_stage_one_skipped_non_human_modified": 5817,
-        "manual_stage_one_skipped_non_stage_one": 1717,
+        "manual_stage_one_skipped_non_human_modified": 5800,
+        "manual_stage_one_skipped_non_stage_one": 1737,
         "manual_stage_one_total_entries": 8287,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 6576,
+        "skipped_filtered_stage": 6556,
         "total_entries": 8288
       },
       "total": 8288
