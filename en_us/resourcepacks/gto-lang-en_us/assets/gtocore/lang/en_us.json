@@ -1552,6 +1552,7 @@
   "gtocore.lang.precision_assembly_center.1.-921593251": "Quantum vision system ensures every component connects perfectly at nanometer precision.",
   "gtocore.lang.primitive_distillation_tower.9.-1884164682": "Operation Mechanism",
   "gtocore.lang.processing_plant.5.1960824803": "Recipe Tier is limited by Framework Tier",
+  "gtocore.lang.radiation_hatch.2.-1782524173": "Initial radiation = (Recipe radiation - inhibition) * (Count of radiation materials / 64 + 1)",
   "gtocore.lang.radiation_hatch.3.-1134869389": "When there are no radioactive materials inside the hatch, the radiation gradually decreases over time",
   "gtocore.lang.recipe_extension.1.-1256814718": "§6Passive Energy Consumption§r is provided by the §bCore Module§r, while §6Recipe Energy Consumption§r needs to be provided by the §dEnergy Input§r installed in §bthis module§r",
   "gtocore.lang.recipe_extension.2.700027242": "Can't run recipes without a linked §bCore Module§r",
