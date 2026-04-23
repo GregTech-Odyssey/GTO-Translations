@@ -5362,6 +5362,7 @@
   "gtocore.recipe.neutron_flux.m": "Минимальный поток нейтронов: %s МэВ",
   "gtocore.recipe.radioactivity": "Доза радиации: %s Зв",
   "gtocore.recipe.recycler.random_output": "Случайный предмет",
+  "gtocore.recipe.spool": "Тип шпульки: %s",
   "gtocore.recipe.time_cost_multiplier": "Общий множитель времени: %s",
   "gtocore.recipe.vacuum.tier": "Уровень вакуума: %s",
   "gtocore.satellite_control_center.emi.launch_satellite": "Запуск спутника",
