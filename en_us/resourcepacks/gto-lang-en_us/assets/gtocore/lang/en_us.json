@@ -1611,6 +1611,8 @@
   "gtocore.machine.monitor.display_key.gtocore.machine_mantenance": "Maintenance Status",
   "gtocore.machine.processing_plant.mismatched": "Voltage too high for the Singleblock",
   "gtocore.machine.recipe.run": "When running the %s recipe: ",
+  "gtocore.machine.space_elevator.connected": "Connected to a running Space Elevator",
+  "gtocore.machine.space_elevator.not_connected": "Not connected to a running Space Elevator",
   "gtocore.machine.steam.tooltip.1": "Able to process &s-Tier recipes and below, processing time 50% slower however.",
   "gtocore.machine.stellar_forge.pressure": "Internal Pressure: ",
   "gtocore.machine.void_transporter.tooltip.0": "Right-clicking Obsidian will teleport you to the Void, while right-clicking Crying Obsidian will teleport you to the Superflat.",

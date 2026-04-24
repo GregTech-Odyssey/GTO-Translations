@@ -5,15 +5,15 @@
       "remote_name": "GTOCore/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 2508,
+        "emitted_entries": 2510,
         "manual_stage_one_duplicate_keys": 0,
         "manual_stage_one_entries": 737,
         "manual_stage_one_skipped_empty_translation": 2,
-        "manual_stage_one_skipped_non_human_modified": 5772,
-        "manual_stage_one_skipped_non_stage_one": 1776,
+        "manual_stage_one_skipped_non_human_modified": 5770,
+        "manual_stage_one_skipped_non_stage_one": 1778,
         "manual_stage_one_total_entries": 8287,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 6517,
+        "skipped_filtered_stage": 6515,
         "total_entries": 8288
       },
       "total": 8288
@@ -23,15 +23,15 @@
       "remote_name": "GTOdyssey/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 1419,
+        "emitted_entries": 1467,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 946,
+        "manual_stage_one_entries": 943,
         "manual_stage_one_skipped_empty_translation": 1,
-        "manual_stage_one_skipped_non_human_modified": 3718,
-        "manual_stage_one_skipped_non_stage_one": 154,
+        "manual_stage_one_skipped_non_human_modified": 3670,
+        "manual_stage_one_skipped_non_stage_one": 205,
         "manual_stage_one_total_entries": 4819,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 4665,
+        "skipped_filtered_stage": 4614,
         "total_entries": 5138
       },
       "total": 5138
