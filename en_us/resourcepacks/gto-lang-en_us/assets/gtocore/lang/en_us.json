@@ -1597,6 +1597,7 @@
   "gtocore.lang.wood_distillation.1.-698931315": "Through precise control of catalytic gases, lignin and cellulose are efficiently separated and restructured",
   "gtocore.lang.wood_distillation.2.1670854059": "Transforming wood into methanol and sawdust into fibers — achieving the full potential of renewable resources",
   "gtocore.lang.wood_distillation.3.1284544446": "A perfect synergy of biocatalysis and high-temperature pyrolysis, creating a zero-carbon green process",
+  "gtocore.machine.alchemical.chance_can_be_boosted": "Success chance increases with continuous attempts",
   "gtocore.machine.industrial_platform_deployment_tools.offset.x": "X: %s",
   "gtocore.machine.industrial_platform_deployment_tools.offset.y": "Y: %s",
   "gtocore.machine.industrial_platform_deployment_tools.offset.z": "Z: %s",
