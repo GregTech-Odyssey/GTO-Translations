@@ -23,18 +23,18 @@
       "remote_name": "GTOdyssey/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 1467,
+        "emitted_entries": 1439,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 943,
+        "manual_stage_one_entries": 923,
         "manual_stage_one_skipped_empty_translation": 1,
-        "manual_stage_one_skipped_non_human_modified": 3670,
-        "manual_stage_one_skipped_non_stage_one": 205,
-        "manual_stage_one_total_entries": 4819,
+        "manual_stage_one_skipped_non_human_modified": 3500,
+        "manual_stage_one_skipped_non_stage_one": 676,
+        "manual_stage_one_total_entries": 5100,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 4614,
-        "total_entries": 5138
+        "skipped_filtered_stage": 4903,
+        "total_entries": 5419
       },
-      "total": 5138
+      "total": 5419
     }
   ],
   "locale": "en_us",

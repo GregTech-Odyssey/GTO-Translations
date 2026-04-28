@@ -17,12 +17,12 @@
       "remote_name": "GTOdyssey/ja_jp.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 5137,
-        "skipped_empty_translation": 1,
-        "skipped_filtered_stage": 0,
-        "total_entries": 5138
+        "emitted_entries": 4941,
+        "skipped_empty_translation": 2,
+        "skipped_filtered_stage": 476,
+        "total_entries": 5419
       },
-      "total": 5138
+      "total": 5419
     }
   ],
   "locale": "ja_jp",
