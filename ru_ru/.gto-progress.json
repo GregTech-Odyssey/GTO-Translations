@@ -5,21 +5,21 @@
       "remote_name": "GTOCore/ru_ru.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 7959,
+        "emitted_entries": 7947,
         "skipped_empty_translation": 2,
-        "skipped_filtered_stage": 327,
-        "total_entries": 8288
+        "skipped_filtered_stage": 761,
+        "total_entries": 8710
       },
-      "total": 8288
+      "total": 8710
     },
     {
       "output_path": "ru_ru/resourcepacks/gto-lang-ru_ru/assets/gto/lang/ru_ru.json",
       "remote_name": "GTOdyssey/ru_ru.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 4939,
+        "emitted_entries": 4943,
         "skipped_empty_translation": 1,
-        "skipped_filtered_stage": 479,
+        "skipped_filtered_stage": 475,
         "total_entries": 5419
       },
       "total": 5419
