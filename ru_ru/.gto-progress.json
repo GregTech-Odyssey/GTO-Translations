@@ -5,9 +5,9 @@
       "remote_name": "GTOCore/ru_ru.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 7989,
+        "emitted_entries": 8110,
         "skipped_empty_translation": 3,
-        "skipped_filtered_stage": 718,
+        "skipped_filtered_stage": 597,
         "total_entries": 8710
       },
       "total": 8710
