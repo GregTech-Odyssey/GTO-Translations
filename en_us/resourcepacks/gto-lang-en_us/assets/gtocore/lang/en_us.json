@@ -1638,6 +1638,7 @@
   "gtocore.part_ability.input_laser": "Laser Access",
   "gtocore.part_ability.mana_amplifier_hatch": "Mana Amplifier Hatch",
   "gtocore.part_ability.muffler": "Muffler Hatch",
+  "gtocore.part_ability.parallel_hatch": "Parallel Control Hatch",
   "gtocore.part_ability.pump_fluid_hatch": "Pump Fluid Hatch",
   "gtocore.pattern.type": "Machine Recipe Type: %s",
   "gtocore.player.organ.name.function": "Costume Function",
