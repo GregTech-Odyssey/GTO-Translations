@@ -1,6 +1,7 @@
 {
   "ae2.gto_extension.crafting_cycle_error_bracket_close": ")",
   "ae2.gto_extension.crafting_cycle_error_bracket_open": " (",
+  "ae2.gto_extension.crafting_cycle_error_indent": "\n          ",
   "ae2.gto_extension.crafting_cycle_error_item_prefix": "- ",
   "affix.apotheosis:bedrock_fluid_ore": "流体探索",
   "affix.apotheosis:bedrock_fluid_ore.suffix": "石油の眼",
@@ -2170,6 +2171,7 @@
   "gtocore.ae.appeng.crafting.cycle_error.count": "\n%s 個のループを検出:",
   "gtocore.ae.appeng.crafting.cycle_error.cycle_number": "\n    ループ %s：",
   "gtocore.ae.appeng.crafting.cycle_error.footer": "\n\n自動クラフトを開始するには、すべての循環参照を解消してください",
+  "gtocore.ae.appeng.crafting.cycle_error.indent": "\n          ",
   "gtocore.ae.appeng.crafting.cycle_error.item_prefix": "- ",
   "gtocore.ae.appeng.crafting.cycle_error.main": "循環参照が検出されました。自動クラフトを開始できません",
   "gtocore.ae.appeng.crafting.cycle_error.more_cycles": "\n    ... 他に %s 個のループが表示されていません",
@@ -2705,6 +2707,7 @@
   "gtocore.lang.1.336979551": "アイテムを右クリックで名前をコピー",
   "gtocore.lang.1000504160": "予測と統合：",
   "gtocore.lang.1011049812": "ローターホルダーが§6HV§rを1段階超えるごとに、効率が10%上昇し、出力電力が倍増します",
+  "gtocore.lang.1024": "  ",
   "gtocore.lang.1050218086": "このマシンは、完全真空、放射線曝露、無重力などの複雑な宇宙環境下で動作可能です。",
   "gtocore.lang.1060834272": "リーチ距離ボーナス",
   "gtocore.lang.1063239": "  ৹ ",

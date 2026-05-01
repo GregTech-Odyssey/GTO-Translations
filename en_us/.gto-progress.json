@@ -5,15 +5,15 @@
       "remote_name": "GTOCore/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 2510,
+        "emitted_entries": 2522,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 730,
-        "manual_stage_one_skipped_empty_translation": 2,
-        "manual_stage_one_skipped_non_human_modified": 6185,
-        "manual_stage_one_skipped_non_stage_one": 1788,
-        "manual_stage_one_total_entries": 8705,
-        "skipped_empty_translation": 1,
-        "skipped_filtered_stage": 6929,
+        "manual_stage_one_entries": 738,
+        "manual_stage_one_skipped_empty_translation": 0,
+        "manual_stage_one_skipped_non_human_modified": 6186,
+        "manual_stage_one_skipped_non_stage_one": 1779,
+        "manual_stage_one_total_entries": 8703,
+        "skipped_empty_translation": 0,
+        "skipped_filtered_stage": 6926,
         "total_entries": 8710
       },
       "total": 8710
@@ -23,18 +23,18 @@
       "remote_name": "GTOdyssey/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 1442,
+        "emitted_entries": 1458,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 923,
-        "manual_stage_one_skipped_empty_translation": 1,
-        "manual_stage_one_skipped_non_human_modified": 3956,
-        "manual_stage_one_skipped_non_stage_one": 216,
-        "manual_stage_one_total_entries": 5096,
-        "skipped_empty_translation": 1,
-        "skipped_filtered_stage": 4899,
-        "total_entries": 5419
+        "manual_stage_one_entries": 928,
+        "manual_stage_one_skipped_empty_translation": 0,
+        "manual_stage_one_skipped_non_human_modified": 3963,
+        "manual_stage_one_skipped_non_stage_one": 197,
+        "manual_stage_one_total_entries": 5088,
+        "skipped_empty_translation": 0,
+        "skipped_filtered_stage": 4891,
+        "total_entries": 5421
       },
-      "total": 5419
+      "total": 5421
     }
   ],
   "locale": "en_us",
