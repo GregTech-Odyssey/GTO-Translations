@@ -160,7 +160,7 @@ def normalize_manual_stage_one_payload(payload: Any) -> tuple[dict[str, str], di
         if parsed_stage != 1:
             stats["skipped_non_stage_one"] += 1
             continue
-        if not translation.strip():
+        if translation == "":
             stats["skipped_empty_translation"] += 1
             continue
         if not has_current_human_translation(item):

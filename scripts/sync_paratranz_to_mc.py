@@ -376,7 +376,7 @@ def normalize_translation_payload(
             continue
         # Hidden entries intentionally export their original text so they can still render in-game.
         emitted_text = original if parsed_stage == -1 else translation
-        if not emitted_text.strip():
+        if emitted_text == "":
             stats["skipped_empty_translation"] += 1
             continue
 

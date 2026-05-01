@@ -284,6 +284,29 @@ class NormalizeTranslationPayloadTests(unittest.TestCase):
         )
         self.assertEqual(stats["skipped_empty_translation"], 0)
 
+    def test_whitespace_only_text_is_preserved(self) -> None:
+        payload = [
+            {"key": "item.spaces", "translation": "  ", "stage": 5},
+            {"key": "item.newline", "translation": "\n", "stage": 5},
+            {"key": "item.hidden_whitespace", "original": "\n  ", "translation": "", "stage": -1},
+            {"key": "item.empty", "translation": "", "stage": 5},
+        ]
+
+        mapping, stats = sync_module.normalize_translation_payload(
+            payload,
+            allowed_stages={-1, 5, 9},
+        )
+
+        self.assertEqual(
+            mapping,
+            {
+                "item.hidden_whitespace": "\n  ",
+                "item.newline": "\n",
+                "item.spaces": "  ",
+            },
+        )
+        self.assertEqual(stats["skipped_empty_translation"], 1)
+
     def test_accepts_existing_flat_json_mapping(self) -> None:
         payload = {
             "item.alpha": "Alpha",
@@ -312,6 +335,18 @@ class EnUsManualStageOneTests(unittest.TestCase):
             {
                 "key": "item.manual",
                 "translation": "Manual",
+                "stage": 1,
+                "history": [
+                    {
+                        "field": "translation",
+                        "operation": "translate",
+                        "createdAt": "2026-04-02T00:00:01Z",
+                    }
+                ],
+            },
+            {
+                "key": "item.whitespace",
+                "translation": "  ",
                 "stage": 1,
                 "history": [
                     {
@@ -384,10 +419,11 @@ class EnUsManualStageOneTests(unittest.TestCase):
             mapping,
             {
                 "item.manual": "Manual",
+                "item.whitespace": "  ",
             },
         )
-        self.assertEqual(stats["total_entries"], 5)
-        self.assertEqual(stats["emitted_entries"], 1)
+        self.assertEqual(stats["total_entries"], 6)
+        self.assertEqual(stats["emitted_entries"], 2)
         self.assertEqual(stats["skipped_non_stage_one"], 1)
         self.assertEqual(stats["skipped_empty_translation"], 1)
         self.assertEqual(stats["skipped_non_human_modified"], 2)
