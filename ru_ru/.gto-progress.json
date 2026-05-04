@@ -5,9 +5,9 @@
       "remote_name": "GTOCore/ru_ru.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 8361,
+        "emitted_entries": 8411,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 349,
+        "skipped_filtered_stage": 299,
         "total_entries": 8710
       },
       "total": 8710
@@ -17,9 +17,9 @@
       "remote_name": "GTOdyssey/ru_ru.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 4958,
+        "emitted_entries": 5078,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 463,
+        "skipped_filtered_stage": 343,
         "total_entries": 5421
       },
       "total": 5421
