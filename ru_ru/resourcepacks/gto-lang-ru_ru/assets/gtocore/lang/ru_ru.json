@@ -5768,7 +5768,7 @@
   "gtocore.recipe.fuelcell.converted_energy": "Преобразуемая базовая энергия: %s EU",
   "gtocore.recipe.grindball": "Материал измельчающего шара：%s",
   "gtocore.recipe.heat.change": "Базовая теплопроизводительность рецепта: %sK/с",
-  "gtocore.recipe.heat.temperature": "Требуется внешний источник тепла: %s K",
+  "gtocore.recipe.heat.temperature": "Внешний источник тепла: %s K",
   "gtocore.recipe.law_cleanroom.display_name": "Абсолютная чистота",
   "gtocore.recipe.mana_consumption": "Потребление маны",
   "gtocore.recipe.mana_efficiency": "Общий множитель затрат маны: %s",
