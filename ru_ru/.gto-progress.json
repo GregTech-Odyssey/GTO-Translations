@@ -17,9 +17,9 @@
       "remote_name": "GTOdyssey/ru_ru.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 5139,
+        "emitted_entries": 5335,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 282,
+        "skipped_filtered_stage": 86,
         "total_entries": 5421
       },
       "total": 5421
