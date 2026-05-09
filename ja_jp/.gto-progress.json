@@ -5,9 +5,9 @@
       "remote_name": "GTOCore/ja_jp.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 8449,
+        "emitted_entries": 8528,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 246,
+        "skipped_filtered_stage": 167,
         "total_entries": 8695
       },
       "total": 8695
