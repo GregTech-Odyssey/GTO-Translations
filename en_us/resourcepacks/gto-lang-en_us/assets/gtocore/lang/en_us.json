@@ -162,6 +162,7 @@
   "block.gtocore.component_assembly_line_casing_lv": "Component Assembly Line Casing (LV)",
   "block.gtocore.component_assembly_line_casing_max": "Component Assembly Line Casing (MAX)",
   "block.gtocore.component_assembly_line_casing_mv": "Component Assembly Line Casing (MV)",
+  "block.gtocore.component_assembly_line_casing_opv": "Component Assembly Line Casing (OpV)",
   "block.gtocore.component_assembly_line_casing_uev": "Component Assembly Line Casing (UEV)",
   "block.gtocore.component_assembly_line_casing_uhv": "Component Assembly Line Casing (UHV)",
   "block.gtocore.component_assembly_line_casing_uiv": "Component Assembly Line Casing (UIV)",
