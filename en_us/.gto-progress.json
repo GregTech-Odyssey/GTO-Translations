@@ -5,15 +5,15 @@
       "remote_name": "GTOCore/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 2905,
+        "emitted_entries": 3010,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 882,
+        "manual_stage_one_entries": 948,
         "manual_stage_one_skipped_empty_translation": 0,
-        "manual_stage_one_skipped_non_human_modified": 5682,
-        "manual_stage_one_skipped_non_stage_one": 2018,
+        "manual_stage_one_skipped_non_human_modified": 5577,
+        "manual_stage_one_skipped_non_stage_one": 2057,
         "manual_stage_one_total_entries": 8582,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 6566,
+        "skipped_filtered_stage": 6527,
         "total_entries": 8589
       },
       "total": 8589
@@ -25,13 +25,13 @@
         "duplicate_keys": 0,
         "emitted_entries": 1538,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 1012,
+        "manual_stage_one_entries": 1011,
         "manual_stage_one_skipped_empty_translation": 0,
         "manual_stage_one_skipped_non_human_modified": 3804,
-        "manual_stage_one_skipped_non_stage_one": 193,
+        "manual_stage_one_skipped_non_stage_one": 194,
         "manual_stage_one_total_entries": 5009,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 4816,
+        "skipped_filtered_stage": 4815,
         "total_entries": 5342
       },
       "total": 5342
