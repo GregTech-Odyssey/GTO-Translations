@@ -7,13 +7,13 @@
         "duplicate_keys": 0,
         "emitted_entries": 3152,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 1024,
+        "manual_stage_one_entries": 1023,
         "manual_stage_one_skipped_empty_translation": 0,
         "manual_stage_one_skipped_non_human_modified": 5435,
-        "manual_stage_one_skipped_non_stage_one": 2123,
+        "manual_stage_one_skipped_non_stage_one": 2124,
         "manual_stage_one_total_entries": 8582,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 6461,
+        "skipped_filtered_stage": 6460,
         "total_entries": 8589
       },
       "total": 8589
@@ -25,13 +25,13 @@
         "duplicate_keys": 0,
         "emitted_entries": 1569,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 1032,
+        "manual_stage_one_entries": 1031,
         "manual_stage_one_skipped_empty_translation": 0,
         "manual_stage_one_skipped_non_human_modified": 3773,
-        "manual_stage_one_skipped_non_stage_one": 204,
+        "manual_stage_one_skipped_non_stage_one": 205,
         "manual_stage_one_total_entries": 5009,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 4805,
+        "skipped_filtered_stage": 4804,
         "total_entries": 5342
       },
       "total": 5342
