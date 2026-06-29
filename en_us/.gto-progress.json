@@ -5,36 +5,36 @@
       "remote_name": "GTOCore/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 3138,
+        "emitted_entries": 3241,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 1021,
+        "manual_stage_one_entries": 1430,
         "manual_stage_one_skipped_empty_translation": 0,
-        "manual_stage_one_skipped_non_human_modified": 5358,
-        "manual_stage_one_skipped_non_stage_one": 2838,
-        "manual_stage_one_total_entries": 9217,
+        "manual_stage_one_skipped_non_human_modified": 5528,
+        "manual_stage_one_skipped_non_stage_one": 1805,
+        "manual_stage_one_total_entries": 8763,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 7107,
-        "total_entries": 9224
+        "skipped_filtered_stage": 6959,
+        "total_entries": 8770
       },
-      "total": 9224
+      "total": 8770
     },
     {
       "output_path": "en_us/resourcepacks/gto-lang-en_us/assets/gto/lang/en_us.json",
       "remote_name": "GTOdyssey/en_us.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 1559,
+        "emitted_entries": 1573,
         "manual_stage_one_duplicate_keys": 0,
-        "manual_stage_one_entries": 1021,
+        "manual_stage_one_entries": 1034,
         "manual_stage_one_skipped_empty_translation": 0,
-        "manual_stage_one_skipped_non_human_modified": 3721,
-        "manual_stage_one_skipped_non_stage_one": 328,
-        "manual_stage_one_total_entries": 5070,
+        "manual_stage_one_skipped_non_human_modified": 3819,
+        "manual_stage_one_skipped_non_stage_one": 204,
+        "manual_stage_one_total_entries": 5057,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 4867,
-        "total_entries": 5405
+        "skipped_filtered_stage": 4853,
+        "total_entries": 5392
       },
-      "total": 5405
+      "total": 5392
     }
   ],
   "locale": "en_us",
