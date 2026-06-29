@@ -1,7 +1,7 @@
 release:
   product: gto
   primary_project_id: 16320
-  current_version: 0.5.5
+  current_version: 0.5.6
 
 projects:
   - locale: en_us

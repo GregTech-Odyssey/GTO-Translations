@@ -5,24 +5,24 @@
       "remote_name": "GTOCore/ja_jp.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 8422,
+        "emitted_entries": 8331,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 167,
-        "total_entries": 8589
+        "skipped_filtered_stage": 893,
+        "total_entries": 9224
       },
-      "total": 8589
+      "total": 9224
     },
     {
       "output_path": "ja_jp/resourcepacks/gto-lang-ja_jp/assets/gto/lang/ja_jp.json",
       "remote_name": "GTOdyssey/ja_jp.json",
       "stats": {
         "duplicate_keys": 0,
-        "emitted_entries": 5342,
+        "emitted_entries": 5280,
         "skipped_empty_translation": 0,
-        "skipped_filtered_stage": 0,
-        "total_entries": 5342
+        "skipped_filtered_stage": 125,
+        "total_entries": 5405
       },
-      "total": 5342
+      "total": 5405
     }
   ],
   "locale": "ja_jp",
