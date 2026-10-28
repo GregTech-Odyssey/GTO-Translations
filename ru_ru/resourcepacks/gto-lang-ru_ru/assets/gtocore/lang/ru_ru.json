@@ -5378,6 +5378,7 @@
   "gtocore.machine.large_steam_solar_boiler.heat_collector_pipe": "Количество активных корпусов трубы солнечного котла: %s",
   "gtocore.machine.large_steam_solar_boiler.size": "Размер: %s × %s",
   "gtocore.machine.large_steam_solar_boiler.steam_production": "Производство пара: %s / с",
+  "gtocore.machine.laser.tooltip": "Разрешено использование лазерных энергетических люков",
   "gtocore.machine.lightning_rod.tooltip.0": " При ударе молнии в установленный сверху громоотвод вырабатывается огромное количество энергии",
   "gtocore.machine.lightning_rod.tooltip.1": "Энергия вырабатывается не чаще одного раза в 0,5 секунды, с шансом повредить громоотвод сверху",
   "gtocore.machine.lightning_rod.tooltip.2": "Если буфер механизма заполнен и по нему ударом молния, то будет бум",
