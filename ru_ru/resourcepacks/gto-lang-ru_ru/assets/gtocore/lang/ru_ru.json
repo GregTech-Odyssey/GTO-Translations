@@ -2682,7 +2682,7 @@
   "gtocore.difficulty_config.comment.generator_array.loss.1": "Чем больше значение, тем выше потери при передачи в беспроводную энергосеть.",
   "gtocore.difficulty_config.comment.generator_array.multiply.0": "Бонус мощности генерирующего массива, который влияет на выходную мощность каждого генератора.",
   "gtocore.difficulty_config.comment.generator_array.multiply.1": "Чем выше значение, тем больше выходная мощность генератора.",
-  "gtocore.difficulty_config.comment.generator_array.multiply.2": "Это значение зависит только от сложностью и отражает эффективность генераторов на разных уровнях сложности.",
+  "gtocore.difficulty_config.comment.generator_array.multiply.2": "Это значение зависит только от сложности и отражает эффективность генераторов на разных уровнях сложности.",
   "gtocore.difficulty_config.comment.gtceu.machine.multiblock.steam.large_circuit_assembler.engraving_needed_amount.0": "Перед выполнением рецепта по сборке схем необходимо произвести гравировку требуемого количества предметов",
   "gtocore.difficulty_config.comment.gtceu.machine.multiblock.steam.large_circuit_assembler.reduction_duration.0": "Больше времени - выше выход. Это логично",
   "gtocore.difficulty_config.comment.gtceu.machine.part.ae.simple_pattern_buffer.slot_count.0": "Количество слотов для шаблонов из AE2",
